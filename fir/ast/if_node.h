@@ -6,7 +6,7 @@
 namespace fir {
 
   /**
-   * Class for describing if-then nodes.
+   * Class for describing if nodes.
    */
   class if_node: public cdk::basic_node {
     cdk::expression_node *_condition;

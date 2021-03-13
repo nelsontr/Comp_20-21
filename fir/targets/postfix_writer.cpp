@@ -270,3 +270,22 @@ void fir::postfix_writer::do_if_else_node(fir::if_else_node * const node, int lv
   node->elseblock()->accept(this, lvl + 2);
   _pf.LABEL(mklbl(lbl1 = lbl2));
 }
+
+
+//CÓDIGO NOVO
+
+void fir::postfix_writer::do_block_node(fir::block_node *const node, int lvl) {
+  // EMPTY
+}
+void fir::postfix_writer::do_return_node(fir::return_node *const node, int lvl) {
+  // EMPTY
+}
+void fir::postfix_writer::do_leave_node(fir::leave_node *const node, int lvl) {
+  // EMPTY
+}
+void fir::postfix_writer::do_while_finally_node(fir::while_finally_node *const node, int lvl) {
+  // EMPTY
+}
+void fir::postfix_writer::do_restart_node(fir::restart_node *const node, int lvl) {
+  // EMPTY
+}

@@ -200,3 +200,19 @@ void fir::xml_writer::do_if_else_node(fir::if_else_node * const node, int lvl) {
   closeTag("else", lvl + 2);
   closeTag(node, lvl);
 }
+
+void fir::xml_writer::do_block_node(fir::block_node *const node, int lvl) {
+  // EMPTY
+}
+void fir::xml_writer::do_return_node(fir::return_node *const node, int lvl) {
+  // EMPTY
+}
+void fir::xml_writer::do_leave_node(fir::leave_node *const node, int lvl) {
+  // EMPTY
+}
+void fir::xml_writer::do_while_finally_node(fir::while_finally_node *const node, int lvl) {
+  // EMPTY
+}
+void fir::xml_writer::do_restart_node(fir::restart_node *const node, int lvl) {
+  // EMPTY
+}

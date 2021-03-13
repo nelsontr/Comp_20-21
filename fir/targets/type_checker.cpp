@@ -190,3 +190,23 @@ void fir::type_checker::do_if_node(fir::if_node *const node, int lvl) {
 void fir::type_checker::do_if_else_node(fir::if_else_node *const node, int lvl) {
   node->condition()->accept(this, lvl + 4);
 }
+
+
+//CÓDIGO NOVO
+
+
+void fir::type_checker::do_block_node(fir::block_node *const node, int lvl) {
+  // EMPTY
+}
+void fir::type_checker::do_return_node(fir::return_node *const node, int lvl) {
+  // EMPTY
+}
+void fir::type_checker::do_leave_node(fir::leave_node *const node, int lvl) {
+  // EMPTY
+}
+void fir::type_checker::do_while_finally_node(fir::while_finally_node *const node, int lvl) {
+  // EMPTY
+}
+void fir::type_checker::do_restart_node(fir::restart_node *const node, int lvl) {
+  // EMPTY
+}
