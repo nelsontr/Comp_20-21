@@ -4,7 +4,7 @@
 
 Compilers 2020/2021
 
-**Group**
+**Group 019**
 
 - @franciscosaiote
 - @nelsontr
@@ -22,14 +22,9 @@ Compilers 2020/2021
 | [Final]()         | *00.0* / 12.0           |
 
 
-
-# Indíce
-[TOC]
-
 # CVS
 
 [Mais Aqui](CVS.md)
-
 
 
 # Avaliação
