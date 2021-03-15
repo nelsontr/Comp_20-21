@@ -54,15 +54,23 @@ make clean; make;
 
 * [x] **restart** [ *integer-literal* ]
 
-* [ ] **write** *expressões* ; | **writeln** *expressões* ;
+* [x] **write** *expressões* ; | **writeln** *expressões* ;
 
-  Adaptar ***print_node.h*** para conseguir fazer new_line (Exemplo no OG::ast::print_node.h)
+  **Q:** No Og tem os argumentos como sequence node, mas no print_node que vinha por predefinição vem como expression_node. Qual é que é a diferença?
+
+  **A:** (...)
+
+* [x] **Input** (read_node.h) ?
+
+* [x] **Sizeof** - sizeof_node.h
+
+* [x] **Left-values**
+
+  Copiado - Explicar melhor
 
 * [ ] **Variáveis** - variables_declaration_node.h
 
 * [ ] **Identificadores** - index_node.h
-
-* [ ] **Input** - input_node.h
 
 * [ ] **Parênteses**
 
@@ -73,6 +81,4 @@ make clean; make;
 * [ ] **Memoria** - address_of_node.h
 
 * [ ] **Endereços**
-
-* [ ] **Sizeof** - sizeof_node.h
 
