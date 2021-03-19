@@ -11,7 +11,7 @@ namespace fir {
     cdk::expression_node *_index;
 
   public:
-    left_value_node(int lineno, cdk::expression_node *base, cdk::expression_node *index) :
+    left_value_node(int lineno, cdk::expression_node *base, cdk::expression_node *index):
         cdk::lvalue_node(lineno), _base(base), _index(index) {
     }
 

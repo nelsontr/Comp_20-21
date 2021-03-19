@@ -64,21 +64,18 @@ make clean; make;
 
 * [x] **Sizeof** - sizeof_node.h
 
-* [x] **Left-values**
+* [x] **Left-values ou Identificadores** - index_node.h->left_value_node
 
-  Copiado - Explicar melhor
+* [x] **Variáveis** - variables_declaration_node.h
 
-* [ ] **Variáveis** - variables_declaration_node.h
+* [ ] **Parênteses** curved_bracket_node.h
 
-* [ ] **Identificadores** - index_node.h
+* [x] **Identidade e simetrico** addition_node.h
 
-* [ ] **Parênteses**
+* [x] **Memoria** - address_of_node.h
 
-* [ ] **Pointers**
+* [x] **Pointer**
+* [x] **Null pointer**
 
-* [ ] **Identidade e simetrico**
-
-* [ ] **Memoria** - address_of_node.h
-
-* [ ] **Endereços**
+* [] **Inicialização** perguntar ao coxo e ao nancio
 
