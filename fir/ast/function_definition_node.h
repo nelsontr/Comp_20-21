@@ -38,6 +38,10 @@ namespace fir {
       return _arguments;
     }
 
+    cdk::typed_node* argument(size_t ax) {
+      return dynamic_cast<cdk::typed_node*>(_arguments->node(ax));
+    }
+
     fir::block_node* block() {
       return _block;
     }

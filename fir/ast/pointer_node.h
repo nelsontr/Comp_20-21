@@ -1,22 +1,26 @@
 #ifndef __FIR_AST_POINTER_NODE_H__
 #define __FIR_AST_POINTER_NODE_H__
 
-#include <cdk/ast/expression_node.h>
+
 #include <cdk/ast/lvalue_node.h>
 
 namespace fir {
 
-  class pointer_node: public cdk::expression_node {
-    cdk::lvalue_node *_lvalue;
+  class pointer_node: public cdk::lvalue_node {
+    cdk::expression_node *_base;
+    cdk::expression_node *_index;
 
   public:
-    inline pointer_node(int lineno, cdk::lvalue_node *argument):
-        cdk::expression_node(lineno), _lvalue(argument) {
+    pointer_node(int lineno, cdk::expression_node *base, cdk::expression_node *index):
+        cdk::lvalue_node(lineno), _base(base), _index(index) {
     }
 
   public:
-    inline cdk::lvalue_node *lvalue() {
-      return _lvalue;
+    cdk::expression_node *base() {
+      return _base;
+    }
+    cdk::expression_node *index() {
+      return _index;
     }
 
   public:
@@ -29,5 +33,4 @@ namespace fir {
 }
 
 #endif
-
 
