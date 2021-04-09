@@ -21,7 +21,7 @@ namespace fir {
       return _argument;
     }
 
-    void accept(expression_ast_visitor *sp, int level) {
+    void accept(basic_ast_visitor *sp, int level) {
       sp->do_read_node(this, level);
     }
 

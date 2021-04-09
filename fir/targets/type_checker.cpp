@@ -153,15 +153,7 @@ void fir::type_checker::do_assignment_node(cdk::assignment_node *const node, int
 
 //---------------------------------------------------------------------------
 
-void fir::type_checker::do_program_node(fir::program_node *const node, int lvl) {
-  // EMPTY
-}
-
 void fir::type_checker::do_evaluation_node(fir::evaluation_node *const node, int lvl) {
-  node->argument()->accept(this, lvl + 2);
-}
-
-void fir::type_checker::do_print_node(fir::print_node *const node, int lvl) {
   node->argument()->accept(this, lvl + 2);
 }
 
@@ -195,9 +187,6 @@ void fir::type_checker::do_if_else_node(fir::if_else_node *const node, int lvl) 
 //CÓDIGO NOVO
 
 
-void fir::type_checker::do_block_node(fir::block_node *const node, int lvl) {
-  // EMPTY
-}
 void fir::type_checker::do_return_node(fir::return_node *const node, int lvl) {
   // EMPTY
 }
@@ -208,9 +197,6 @@ void fir::type_checker::do_while_finally_node(fir::while_finally_node *const nod
   // EMPTY
 }
 void fir::type_checker::do_restart_node(fir::restart_node *const node, int lvl) {
-  // EMPTY
-}
-void fir::type_checker::do_bracket_node(fir::bracket_node *const node, int lvl) {
   // EMPTY
 }
 void fir::type_checker::do_declaration_variable_node(fir::declaration_variable_node *const node, int lvl) {
@@ -228,9 +214,6 @@ void fir::type_checker::do_function_definition_node(fir::function_definition_nod
 void fir::type_checker::do_identify_node(fir::identify_node *const node, int lvl) {
   // EMPTY
 }
-void fir::type_checker::do_left_value_node(fir::left_value_node *const node, int lvl) {
-  // EMPTY
-}
 void fir::type_checker::do_null_pointer_node(fir::null_pointer_node *const node, int lvl) {
   // EMPTY
 }
@@ -238,6 +221,12 @@ void fir::type_checker::do_pointer_node(fir::pointer_node *const node, int lvl) 
   // EMPTY
 }
 void fir::type_checker::do_size_of_node(fir::size_of_node *const node, int lvl) {
+  // EMPTY
+}
+void fir::type_checker::do_adress_of_node(fir::adress_of_node *const node, int lvl) {
+  // EMPTY
+}
+void fir::type_checker::do_block_node(fir::block_node *const node, int lvl) {
   // EMPTY
 }
 void fir::type_checker::do_write_node(fir::write_node *const node, int lvl) {

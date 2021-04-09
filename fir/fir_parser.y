@@ -45,7 +45,7 @@
 %left '*' '/' '%'
 %nonassoc tUNARY
 
-%type <node> stmt program
+%type <node> stmt //program
 %type <sequence> list
 %type <expression> expr
 %type <lvalue> lval
@@ -55,15 +55,15 @@
 %}
 %%
 
-program	: tBEGIN list tEND { compiler->ast(new fir::program_node(LINE, $2)); }
-	      ;
+/*program	: tBEGIN list tEND { compiler->ast(new fir::program_node(LINE, $2)); }
+	      ;*/
 
 list : stmt	     { $$ = new cdk::sequence_node(LINE, $1); }
 	   | list stmt { $$ = new cdk::sequence_node(LINE, $2, $1); }
 	   ;
 
 stmt : expr ';'                         { $$ = new fir::evaluation_node(LINE, $1); }
- 	   | tPRINT expr ';'                  { $$ = new fir::print_node(LINE, $2); }
+// 	   | tPRINT expr ';'                  { $$ = new fir::print_node(LINE, $2); }
      | tREAD lval ';'                   { $$ = new fir::read_node(LINE, $2); }
      | tWHILE '(' expr ')' stmt         { $$ = new fir::while_node(LINE, $3, $5); }
      | tIF '(' expr ')' stmt %prec tIFX { $$ = new fir::if_node(LINE, $3, $5); }
