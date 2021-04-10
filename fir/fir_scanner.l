@@ -11,25 +11,67 @@
 // don't change this
 #define yyerror LexerError
 %}
-%x X_STRING
+%x X_STRING X_COMMENT
 %%
+  /* OPERATORS */
 
-"--".*                 ; /* ignore comments */
+"sizeof"			         return tSIZEOF;
 
 ">="                   return tGE; 
 "<="                   return tLE; 
 "=="                   return tEQ; 
 "!="                   return tNE; 
 
-"while"                return tWHILE; 
-"if"                   return tIF; 
-"else"                 return tELSE; 
-"print"                return tPRINT; 
-"read"                 return tREAD; 
-"begin"                return tBEGIN; 
-"end"                  return tEND; 
+"&&"                   return tAND;
+"||"                   return tOR;
+
+  /* SKIP OPERATORS */
+
+"leave"			   	          return tLEAVE;
+"restart"			            return tRESTART;
+"return"			            return tRETURN;
+
+  /* INPUT OUTPUT */
+
+"@"                    return tINPUT;
+"write"                return tWRITE;
+"writeln"              return tWRITELN;  
+
+  /* KEYWORDS */
+
+  /*"void"                       return tVOID_TYPE;*/
+"int"                         return tINT_TYPE;
+"float"				                return tFLOAT_TYPE;
+"string"			                return tSTRING_TYPE;
+"null"                        return tNULLPTR;
+
+  /* CICLES */
+
+"while"                       return tWHILE;
+"do"                          return tDO;
+"finally"                     return tFINALLY; 
+
+  /* CONDITIONS */
+
+"if"                          return tIF;
+"then"                        return tTHEN; 
+"else"                        return tELSE; 
+
+  /* IDENTIFIERS */
 
 [A-Za-z][A-Za-z0-9_]*  yylval.s = new std::string(yytext); return tIDENTIFIER;
+
+  /* COMMENTS */
+
+  /* MISSING SOME CASES - SEE WIKI EXERCICES*/
+"--".*                          ; // ignore comments 
+
+"/*"                            yy_push_state(X_COMMENT);
+<X_COMMENT>"/*"                 yy_push_state(X_COMMENT);
+<X_COMMENT>"*/"                 yy_pop_state();
+<X_COMMENT>.|\n                 ; /* ignore content */
+
+  /* STRINGS */
 
 \'                     yy_push_state(X_STRING); yylval.s = new std::string("");
 <X_STRING>\'           yy_pop_state(); return tSTRING;
@@ -37,7 +79,15 @@
 <X_STRING>.            *yylval.s += yytext;
 <X_STRING>\n           yyerror("newline in string");
 
+  /* INTEGERS */
+
 [0-9]+                 yylval.i = strtol(yytext, nullptr, 10); return tINTEGER;
+
+  /* FLOATS */
+
+  /*(...)*/
+
+  /* OTHERS */
 
 [-()<>=+*/%;{}.]       return *yytext;
 
