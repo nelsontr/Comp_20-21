@@ -1,3 +1,16 @@
+# Project Intermediate
+
+## Warnings
+
+* Antes de fazer commit importante fazer `make clean` e só depois `git push`
+
+## O que falta?
+
+## Palavras reservadas
+
+
+---
+
 # Project Zero
 
 ## Warnings

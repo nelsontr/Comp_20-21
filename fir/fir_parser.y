@@ -25,6 +25,7 @@
   //-- don't change *any* of these --- END!
 
   int                   i;	/* integer value */
+  float                 f;    /* float values */
   std::string          *s;	/* symbol name or string literal */
   cdk::basic_node      *node;	/* node pointer */
   cdk::sequence_node   *sequence;
@@ -33,19 +34,27 @@
 };
 
 %token <i> tINTEGER
+%token <f> tFLOAT
 %token <s> tIDENTIFIER tSTRING
-%token tWHILE tIF tPRINT tREAD tBEGIN tEND
+%token tIF tTHEN tWHILE tDO tFINALLY
+%token tWRITELN tWRITE tINPUT tOR  tAND
+%token tRETURN tRESTART tLEAVE tSIZEOF
+%token tVOID_TYPE tINT_TYPE tFLOAT_TYPE tSTRING_TYPE tNULLPTR
 
-%nonassoc tIFX
+%nonassoc tIF
+%nonassoc tTHEN
 %nonassoc tELSE
 
 %right '='
+%left tOR
+%left tAND
 %left tGE tLE tEQ tNE '>' '<'
 %left '+' '-'
 %left '*' '/' '%'
+     // I STOPED HERE
 %nonassoc tUNARY
 
-%type <node> stmt program
+%type <node> stmt //program
 %type <sequence> list
 %type <expression> expr
 %type <lvalue> lval
@@ -55,18 +64,18 @@
 %}
 %%
 
-program	: tBEGIN list tEND { compiler->ast(new fir::program_node(LINE, $2)); }
-	      ;
+/*program	: tBEGIN list tEND { compiler->ast(new fir::program_node(LINE, $2)); }
+	      ;*/
 
 list : stmt	     { $$ = new cdk::sequence_node(LINE, $1); }
 	   | list stmt { $$ = new cdk::sequence_node(LINE, $2, $1); }
 	   ;
 
 stmt : expr ';'                         { $$ = new fir::evaluation_node(LINE, $1); }
- 	   | tPRINT expr ';'                  { $$ = new fir::print_node(LINE, $2); }
-     | tREAD lval ';'                   { $$ = new fir::read_node(LINE, $2); }
+// 	   | tPRINT expr ';'                  { $$ = new fir::print_node(LINE, $2); }
+//     | tREAD lval ';'                   { $$ = new fir::read_node(LINE, $2); }
      | tWHILE '(' expr ')' stmt         { $$ = new fir::while_node(LINE, $3, $5); }
-     | tIF '(' expr ')' stmt %prec tIFX { $$ = new fir::if_node(LINE, $3, $5); }
+//     | tIF '(' expr ')' stmt %prec tIFX { $$ = new fir::if_node(LINE, $3, $5); }
      | tIF '(' expr ')' stmt tELSE stmt { $$ = new fir::if_else_node(LINE, $3, $5, $7); }
      | '{' list '}'                     { $$ = $2; }
      ;

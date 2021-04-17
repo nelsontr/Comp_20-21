@@ -10,15 +10,15 @@ Compilers 2020/2021
 - @nelsontr
 
 ### Projects
-- [ ] [Zero]()
+- [x] [Zero](https://github.com/nelsontr/Comp_20-21/tree/project_zero)
 - [ ] [Intermediate]()
 - [ ] [Final]()
 
 ### Grades
 | Solution          | Grade 				|
 | :-----------------| :-------------------: |
-| [Zero]()			| *00.0* / 02.0           |
-| [Intermediate]()	| *00.0* / 06.0           |
+| [Zero](https://github.com/nelsontr/Comp_20-21/tree/project_zero)			| *1.40* / 2.00           |
+| [Intermediate]()	| *00.0* / 6.00           |
 | [Final]()         | *00.0* / 12.0           |
 
 
