@@ -48,11 +48,14 @@
 %right '='
 %left tOR
 %left tAND
-%left tGE tLE tEQ tNE '>' '<'
-%left '+' '-'
+%nonassoc '~'
+%left tEQ tNE
+%left tGE tLE '>' '<'
+%left '+' '-' 
 %left '*' '/' '%'
-     // I STOPED HERE
 %nonassoc tUNARY
+%nonassoc '(' ')' '[' ']'
+     // I STOPED HERE
 
 %type <node> stmt //program
 %type <sequence> list

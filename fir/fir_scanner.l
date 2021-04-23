@@ -14,6 +14,7 @@
 FLOAT        ([0-9]*\.[0-9]+|[0-9]+\.[0-9]*)([eE][-+]?[0-9]+)?
 LETTER       [A-Za-z_]
 IDENTIFIER   {LETTER}({LETTER}|[[:digit:]])*
+SPACE        [ \t\r\n]
 
 %x X_STRING X_COMMENT X_SPECIALCHAR
 %%
@@ -36,6 +37,19 @@ IDENTIFIER   {LETTER}({LETTER}|[[:digit:]])*
 "restart"			            return tRESTART;
 "return"			            return tRETURN;
 
+  /*PROLOGUE*/
+
+"@"{SPACE}*"{"                     return tPROLOGUE;
+
+
+  /*EPILOGUE*/
+"<<"{SPACE}*"{"                     return tEPILOGUE;
+
+  /*DEFAULT RETURN*/
+
+"->"                          return tDEFAULT;
+
+
   /* INPUT OUTPUT */
 
 "@"                           return tINPUT;
@@ -49,7 +63,6 @@ IDENTIFIER   {LETTER}({LETTER}|[[:digit:]])*
 "float"				          return tFLOAT_TYPE;
 "string"			          return tSTRING_TYPE;
 "null"                        return tNULLPTR;
-[<>]                          return *yytext;
 
   /* CICLES */
 
@@ -121,9 +134,9 @@ IDENTIFIER   {LETTER}({LETTER}|[[:digit:]])*
 
   /* OTHERS */
 
-[-()<>=+*/%;{}.]       return *yytext;
+[\[\]{};:!(),-+*/%~<>@?=]        return *yytext;
 
-[ \t\n]+               ; /* ignore whitespace */
+{SPACE}+               ; /* ignore whitespace */
 
 .                      yyerror("Unknown character");
 
