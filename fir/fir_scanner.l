@@ -44,7 +44,7 @@ SPACE        [ \t\r\n]
 
 
   /*EPILOGUE*/
-"<<"{SPACE}*"{"                     return tEPILOGUE;
+">>"{SPACE}*"{"                     return tEPILOGUE;
 
   /*DEFAULT RETURN*/
 

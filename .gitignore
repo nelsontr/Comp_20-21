@@ -27,6 +27,6 @@
 *.out
 *.app
 
-.dropbox.attr
-.vscode
-.idea
+**.dropbox.attr
+**.vscode
+**.idea
