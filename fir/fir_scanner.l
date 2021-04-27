@@ -59,7 +59,7 @@ SPACE        [ \t\r\n]
 
   /* KEYWORDS */
 
-  /*"void"                       return tVOID_TYPE;*/
+"void"                              return tVOID_TYPE;
 "int"                               return tINT_TYPE;
 "float"                             return tFLOAT_TYPE;
 "string"                            return tSTRING_TYPE;
@@ -70,11 +70,6 @@ SPACE        [ \t\r\n]
 "while"                             return tWHILE;
 "do"                                return tDO;
 "finally"                           return tFINALLY; 
-
-
-   /*Símbolos globais*/
-"public"                            return tPUBLIC;
-
 
   /* CONDITIONS */
 
