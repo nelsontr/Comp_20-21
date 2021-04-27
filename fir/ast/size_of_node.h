@@ -12,7 +12,7 @@ namespace fir {
     cdk::expression_node *_statement;
 
   public:
-    inline size_of_node(int lineno, cdk::expression_node *statement) :
+    inline size_of_node(int lineno, cdk::expression_node *statement = nullptr) :
         cdk::expression_node(lineno), _statement(statement) {
     }
 
