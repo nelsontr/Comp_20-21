@@ -4,6 +4,7 @@
 #include <string>
 #include <cdk/ast/typed_node.h>
 #include <cdk/ast/sequence_node.h>
+#include <cdk/ast/expression_node.h>
 #include "ast/block_node.h"
 
 namespace fir {
@@ -12,18 +13,19 @@ namespace fir {
     int _qualifier;
     std::string _identifier;
     cdk::sequence_node *_arguments;
+    cdk::basic_node *_returnVal;
     fir::block_node *_block;
 
   public:
     function_definition_node(int lineno, int qualifier, const std::string &identifier, cdk::sequence_node *arguments,
-                             fir::block_node *block) :
-        cdk::typed_node(lineno), _qualifier(qualifier), _identifier(identifier), _arguments(arguments), _block(block) {
+                             cdk::basic_node *return_val, fir::block_node *block) :
+        cdk::typed_node(lineno), _qualifier(qualifier), _identifier(identifier), _arguments(arguments), _returnVal(return_val), _block(block) {
       type(cdk::primitive_type::create(0, cdk::TYPE_VOID));
     }
 
     function_definition_node(int lineno, int qualifier, std::shared_ptr<cdk::basic_type> funType, const std::string &identifier,
-                             cdk::sequence_node *arguments, fir::block_node *block) :
-        cdk::typed_node(lineno), _qualifier(qualifier), _identifier(identifier), _arguments(arguments), _block(block) {
+                             cdk::sequence_node *arguments, cdk::basic_node *return_val, fir::block_node *block) :
+        cdk::typed_node(lineno), _qualifier(qualifier), _identifier(identifier), _arguments(arguments), _returnVal(return_val), _block(block) {
       type(funType);
     }
 
@@ -40,6 +42,10 @@ namespace fir {
 
     cdk::typed_node* argument(size_t ax) {
       return dynamic_cast<cdk::typed_node*>(_arguments->node(ax));
+    }
+
+    cdk::basic_node* returnVal() {
+      return _returnVal;
     }
 
     fir::block_node* block() {

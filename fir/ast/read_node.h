@@ -12,7 +12,7 @@ namespace fir {
     cdk::lvalue_node *_argument;
 
   public:
-    inline read_node(int lineno, cdk::lvalue_node *argument) :
+    inline read_node(int lineno, cdk::lvalue_node *argument=nullptr) :
         cdk::expression_node(lineno), _argument(argument) {
     }
 

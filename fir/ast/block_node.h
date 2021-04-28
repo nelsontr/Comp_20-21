@@ -25,8 +25,8 @@ namespace fir {
       return _instructions;
     }
 
-    bool getType(){
-      return _type;
+    int *type(){
+      return &_type;
     }
 
     void accept(basic_ast_visitor *sp, int level) {
