@@ -262,7 +262,7 @@ void fir::postfix_writer::do_pointer_node(fir::pointer_node *const node, int lvl
 void fir::postfix_writer::do_size_of_node(fir::size_of_node *const node, int lvl) {
   // EMPTY
 }
-void fir::postfix_writer::do_adress_of_node(fir::adress_of_node *const node, int lvl) {
+void fir::postfix_writer::do_address_of_node(fir::address_of_node *const node, int lvl) {
   // EMPTY
 }
 void fir::postfix_writer::do_block_node(fir::block_node *const node, int lvl) {
@@ -270,4 +270,7 @@ void fir::postfix_writer::do_block_node(fir::block_node *const node, int lvl) {
 }
 void fir::postfix_writer::do_write_node(fir::write_node *const node, int lvl) {
   // TODO - VER print_node 
+}
+void fir::postfix_writer::do_alloc_node(fir::alloc_node *const node, int lvl) {
+  // EMPTY
 }

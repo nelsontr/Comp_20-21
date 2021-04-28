@@ -6,26 +6,36 @@
 static std::string qualifier_name(int qualifier) {
     if (qualifier == 1) return "public";
     else if (qualifier == 0) return "private";
-    else if (qualifier == 2) return "import"
+    else if (qualifier == 2) return "import";
     else return "unknown qualifier";
 }
 
 //---------------------------------------------------------------------------
+
+void fir::xml_writer::do_nil_node(cdk::nil_node * const node, int lvl) {
+  openTag(node, lvl);
+  closeTag(node, lvl);
+}
+
+void fir::xml_writer::do_data_node(cdk::data_node * const node, int lvl) {
+  openTag(node, lvl);
+  closeTag(node, lvl);
+}
 
 void fir::xml_writer::do_double_node(cdk::double_node *const node, int lvl) {
     process_literal(node, lvl);
 }
 
 void fir::xml_writer::do_not_node(cdk::not_node *const node, int lvl) {
-    do_unary_operation_node(node, lvl);
+    do_unary_operation(node, lvl);
 }
 
 void fir::xml_writer::do_and_node(cdk::and_node *const node, int lvl) {
-    do_binary_operation_node(node, lvl);
+    do_binary_operation(node, lvl);
 }
 
 void fir::xml_writer::do_or_node(cdk::or_node *const node, int lvl) {
-    do_binary_operation_node(node, lvl);
+    do_binary_operation(node, lvl);
 }
 
 //---------------------------------------------------------------------------
@@ -50,7 +60,7 @@ void fir::xml_writer::do_string_node(cdk::string_node *const node, int lvl) {
 //---------------------------------------------------------------------------
 
 void fir::xml_writer::do_unary_operation(cdk::unary_operation_node *const node, int lvl) {
-    ASSERT_SAFE_EXPRESSIONS;
+    //ASSERT_SAFE_EXPRESSIONS;
     openTag(node, lvl);
     node->argument()->accept(this, lvl + 2);
     closeTag(node, lvl);
@@ -63,7 +73,7 @@ void fir::xml_writer::do_neg_node(cdk::neg_node *const node, int lvl) {
 //---------------------------------------------------------------------------
 
 void fir::xml_writer::do_binary_operation(cdk::binary_operation_node *const node, int lvl) {
-    ASSERT_SAFE_EXPRESSIONS;
+    //ASSERT_SAFE_EXPRESSIONS;
     openTag(node, lvl);
     node->left()->accept(this, lvl + 2);
     node->right()->accept(this, lvl + 2);
@@ -116,21 +126,25 @@ void fir::xml_writer::do_eq_node(cdk::eq_node *const node, int lvl) {
 
 //---------------------------------------------------------------------------
 
+void fir::xml_writer::do_alloc_node(fir::alloc_node *const node, int lvl) {
+    do_unary_operation(node, lvl);
+}
+
 void fir::xml_writer::do_variable_node(cdk::variable_node *const node, int lvl) {
-    ASSERT_SAFE_EXPRESSIONS;
+    //ASSERT_SAFE_EXPRESSIONS;
     os() << std::string(lvl, ' ') << "<" << node->label() << ">" << node->name() << "</" << node->label() << ">"
          << std::endl;
 }
 
 void fir::xml_writer::do_rvalue_node(cdk::rvalue_node *const node, int lvl) {
-    ASSERT_SAFE_EXPRESSIONS;
+    //ASSERT_SAFE_EXPRESSIONS;
     openTag(node, lvl);
     node->lvalue()->accept(this, lvl + 4);
     closeTag(node, lvl);
 }
 
 void fir::xml_writer::do_assignment_node(cdk::assignment_node *const node, int lvl) {
-    ASSERT_SAFE_EXPRESSIONS;
+    //ASSERT_SAFE_EXPRESSIONS;
     openTag(node, lvl);
 
     node->lvalue()->accept(this, lvl);
@@ -143,7 +157,7 @@ void fir::xml_writer::do_assignment_node(cdk::assignment_node *const node, int l
 //---------------------------------------------------------------------------
 
 void fir::xml_writer::do_evaluation_node(fir::evaluation_node *const node, int lvl) {
-    ASSERT_SAFE_EXPRESSIONS;
+    //ASSERT_SAFE_EXPRESSIONS;
     openTag(node, lvl);
     node->argument()->accept(this, lvl + 2);
     closeTag(node, lvl);
@@ -152,7 +166,7 @@ void fir::xml_writer::do_evaluation_node(fir::evaluation_node *const node, int l
 //---------------------------------------------------------------------------
 
 void fir::xml_writer::do_read_node(fir::read_node *const node, int lvl) {
-    ASSERT_SAFE_EXPRESSIONS;
+    //ASSERT_SAFE_EXPRESSIONS;
     openTag(node, lvl);
     node->argument()->accept(this, lvl + 2);
     closeTag(node, lvl);
@@ -161,7 +175,7 @@ void fir::xml_writer::do_read_node(fir::read_node *const node, int lvl) {
 //---------------------------------------------------------------------------
 
 void fir::xml_writer::do_while_node(fir::while_node *const node, int lvl) {
-    ASSERT_SAFE_EXPRESSIONS;
+    //ASSERT_SAFE_EXPRESSIONS;
     openTag(node, lvl);
 
     openTag("condition", lvl + 2);
@@ -178,7 +192,7 @@ void fir::xml_writer::do_while_node(fir::while_node *const node, int lvl) {
 //---------------------------------------------------------------------------
 
 void fir::xml_writer::do_if_node(fir::if_node *const node, int lvl) {
-    ASSERT_SAFE_EXPRESSIONS;
+    //ASSERT_SAFE_EXPRESSIONS;
     openTag(node, lvl);
 
     openTag("condition", lvl + 2);
@@ -193,7 +207,7 @@ void fir::xml_writer::do_if_node(fir::if_node *const node, int lvl) {
 }
 
 void fir::xml_writer::do_if_else_node(fir::if_else_node *const node, int lvl) {
-    ASSERT_SAFE_EXPRESSIONS;
+    //ASSERT_SAFE_EXPRESSIONS;
     openTag(node, lvl);
 
     openTag("condition", lvl + 2);
@@ -214,7 +228,7 @@ void fir::xml_writer::do_if_else_node(fir::if_else_node *const node, int lvl) {
 void fir::xml_writer::do_return_node(fir::return_node *const node, int lvl) {
     //ASSERT_SAFE;
     openTag(node, lvl);
-    if (node->retval()) node->retval()->accept(this, lvl + 4);
+    if (node->value()) node->value()->accept(this, lvl + 4);
     closeTag(node, lvl);
 }
 
@@ -253,7 +267,7 @@ void fir::xml_writer::do_declaration_variable_node(fir::declaration_variable_nod
     //ASSERT_SAFE_EXPRESSIONS;
     reset_new_symbol();
 
-    os() << std::string(lvl, ' ') << "<" << node->label() << " name='" << node->identifier() << "' qualifier='"
+    os() << std::string(lvl, ' ') << "<" << node->label() << " name='" << node->variableId() << "' qualifier='"
          << qualifier_name(node->qualifier()) << "' type='" << cdk::to_string(node->type()) << "'>" << std::endl;
 
     if (node->initializer()) {
@@ -278,7 +292,7 @@ void fir::xml_writer::do_function_call_node(fir::function_call_node *const node,
 }
 
 void fir::xml_writer::do_function_declaration_node(fir::function_declaration_node *const node, int lvl) {
-    ASSERT_SAFE;
+    //ASSERT_SAFE_EXPRESSION;
     reset_new_symbol();
 
     //ERROR??
@@ -336,18 +350,19 @@ void fir::xml_writer::do_null_pointer_node(fir::null_pointer_node *const node, i
 
 void fir::xml_writer::do_pointer_node(fir::pointer_node *const node, int lvl) {
     openTag(node, lvl);
-    if (node->argument()) node->argument()->accept(this, lvl + 2);
+    if (node->base()) node->base()->accept(this, lvl + 2);
+    if (node->index()) node->index()->accept(this, lvl + 2);
     closeTag(node, lvl);
 }
 
 void fir::xml_writer::do_size_of_node(fir::size_of_node *const node, int lvl) {
     //ASSERT_SAFE_EXPRESSIONS;
     openTag(node, lvl);
-    if (node->expression()) node->expression()->accept(this, lvl + 2);
+    if (node->statement()) node->statement()->accept(this, lvl + 2);
     closeTag(node, lvl);
 }
 
-void fir::xml_writer::do_adress_of_node(fir::adress_of_node *const node, int lvl) {
+void fir::xml_writer::do_address_of_node(fir::address_of_node *const node, int lvl) {
     openTag(node, lvl);
     if (node->lvalue()) node->lvalue()->accept(this, lvl + 2);
     closeTag(node, lvl);
@@ -366,10 +381,8 @@ void fir::xml_writer::do_block_node(fir::block_node *const node, int lvl) {
         node->instructions()->accept(this, lvl + 4);
         closeTag("instructions", lvl);
     }
-    if (node->epilogue()) {
-        openTag("epilogue", lvl);
-        node->epilogue()->accept(this, lvl + 4);
-        closeTag("epilogue", lvl);
+    if (node->type()) {
+        os() << std::string(lvl, ' ') << "<" << node->label() << ">" << node->type() << "</" << node->label() << ">" << std::endl;
     }
     closeTag(node, lvl);
 }
@@ -378,10 +391,8 @@ void fir::xml_writer::do_write_node(fir::write_node *const node, int lvl) {
     //ASSERT_SAFE;
     openTag(node, lvl);
     if (node->nLine()) {
-        openTag("nLine", lvl);
-        node->nLine()->accept(this, lvl + 4);
-        closeTag("nLine", lvl);
+        os() << std::string(lvl, ' ') << "<" << node->label() << ">" << node->nLine() << "</" << node->label() << ">" << std::endl;
     }
-    if (node->arguments()) node->arguments()->accept(this, lvl + 2);
+    if (node->argument()) node->argument()->accept(this, lvl + 2);
     closeTag(node, lvl);
 }
