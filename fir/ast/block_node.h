@@ -10,11 +10,11 @@ namespace fir {
    */
   class block_node: public cdk::basic_node {
     cdk::basic_node *_declarations, *_instructions;
-    bool _epilogue;
+    int _type;
 
   public:
-    inline block_node(int lineno, cdk::basic_node *declarations, cdk::basic_node *instructions, bool epilogue = false) :
-        cdk::basic_node(lineno), _declarations(declarations), _instructions(instructions), _epilogue(epilogue){
+    inline block_node(int lineno, cdk::basic_node *declarations, cdk::basic_node *instructions, int type = 1) :
+        cdk::basic_node(lineno), _declarations(declarations), _instructions(instructions), _type(type){
     }
 
   public:
@@ -25,8 +25,8 @@ namespace fir {
       return _instructions;
     }
 
-    bool getEpilogue epilogue(){
-      return _epilogue;
+    bool getEpilogue type(){
+      return _type;
     }
 
     void accept(basic_ast_visitor *sp, int level) {
