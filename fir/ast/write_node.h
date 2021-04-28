@@ -23,7 +23,7 @@ namespace fir {
     }
 
   public:
-    inline cdk:sequence_node *argument() {
+    inline cdk::sequence_node *argument() {
       return _argument;
     }
 

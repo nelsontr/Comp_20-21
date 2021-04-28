@@ -25,7 +25,7 @@ namespace fir {
       return _instructions;
     }
 
-    bool getEpilogue type(){
+    bool getType(){
       return _type;
     }
 

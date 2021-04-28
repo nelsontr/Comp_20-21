@@ -1,12 +1,16 @@
 %option c++ prefix="fir_scanner_" outfile="fir_scanner.cpp"
 %option stack noyywrap yylineno 8bit
-%{ 
+%{
 // make relevant includes before including the parser's tab file
 #include <string>
+#include <sstream>
 #include <cdk/ast/sequence_node.h>
 #include <cdk/ast/expression_node.h>
 #include <cdk/ast/lvalue_node.h>
 #include "fir_parser.tab.h"
+
+// output stream for building string literals
+static std::ostringstream strlit;
 
 // don't change this
 #define yyerror LexerError
@@ -24,10 +28,10 @@ SPACE        [ \t\r\n]
 
 "sizeof"                            return tSIZEOF;
 
-">="                                return tGE; 
-"<="                                return tLE; 
-"=="                                return tEQ; 
-"!="                                return tNE; 
+">="                                return tGE;
+"<="                                return tLE;
+"=="                                return tEQ;
+"!="                                return tNE;
 
 "&&"                                return tAND;
 "||"                                return tOR;
@@ -55,7 +59,7 @@ SPACE        [ \t\r\n]
 
 "@"                                 return tINPUT;
 "write"                             return tWRITE;
-"writeln"                           return tWRITELN;  
+"writeln"                           return tWRITELN;
 
   /* KEYWORDS */
 
@@ -69,13 +73,13 @@ SPACE        [ \t\r\n]
 
 "while"                             return tWHILE;
 "do"                                return tDO;
-"finally"                           return tFINALLY; 
+"finally"                           return tFINALLY;
 
   /* CONDITIONS */
 
 "if"                                return tIF;
-"then"                              return tTHEN; 
-"else"                              return tELSE; 
+"then"                              return tTHEN;
+"else"                              return tELSE;
 
   /* IDENTIFIERS */
 
@@ -83,7 +87,7 @@ SPACE        [ \t\r\n]
 
   /* COMMENTS */
 
-"!!".*\n                            ; // ignore comments 
+"!!".*\n                            ; // ignore comments
 
 "(*"                                yy_push_state(X_COMMENT);
 <X_COMMENT>"(*"                     yy_push_state(X_COMMENT);
@@ -119,16 +123,13 @@ SPACE        [ \t\r\n]
 <X_SPECIALCHAR>.                    { strlit << *yytext; yy_pop_state(); }
 
   /* INTEGERS */
-
 [0-9]+                              yylval.i = strtol(yytext, NULL, 10); return tINTEGER;
 
   /* FLOATS */
-{FLOAT}                             { yylval.d = strtod(yytext, NULL); return tREAL; }
-  /*(...)*/
+{FLOAT}                             yylval.d = strtod(yytext, NULL); return tREAL;
 
   /* OTHERS */
-
-[\[\]{};:!(),-+*/%~<>@?=]           return *yytext;
+[\[\]{};:!(),\-+*/%~<>@?=]           return *yytext;
 
 {SPACE}+                            ; /* ignore whitespace */
 
