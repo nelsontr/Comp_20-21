@@ -58,7 +58,7 @@
 %nonassoc tUNARY
 %nonassoc '(' ')' '[' ']'
 
-%type <node> file decl variableDec funcDec funcDef arg instruction return optDefault
+%type <node> file decl variableDec funcDec funcDef arg instruction optDefault
 %type <sequence> decls variableDecs optVariableDec args instructions optionalInstruc exprs opt_exprs
 %type <expression> expr integer real literal
 %type <s> string
@@ -83,10 +83,10 @@ decl               : variableDec ';'    	{ $$ = $1; }
                    | funcDef     			{ $$ = $1; }
                    ;
 
-variableDec       : '*' data_type  tIDENTIFIER                    { $$ = new fir::declaration_variable_node(LINE, 1,  $2, *$3, nullptr); }
-                  | '*' data_type  tIDENTIFIER '=' expr           { $$ = new fir::declaration_variable_node(LINE, 1,  $2, *$3, $5); }
-                  | '?' data_type  tIDENTIFIER                    { $$ = new fir::declaration_variable_node(LINE, 2, $2, *$3, nullptr); }
-                  | '?' data_type  tIDENTIFIER '=' expr           { $$ = new fir::declaration_variable_node(LINE, 2, $2, *$3, $5); }
+variableDec       : data_type '*' tIDENTIFIER                    { $$ = new fir::declaration_variable_node(LINE, 1,  $1, *$3, nullptr); }
+                  | data_type '*' tIDENTIFIER '=' expr           { $$ = new fir::declaration_variable_node(LINE, 1,  $1, *$3, $5); }
+                  | data_type '?' tIDENTIFIER                    { $$ = new fir::declaration_variable_node(LINE, 2, $1, *$3, nullptr); }
+                  | data_type '?' tIDENTIFIER '=' expr           { $$ = new fir::declaration_variable_node(LINE, 2, $1, *$3, $5); }
                   | data_type  tIDENTIFIER                        { $$ = new fir::declaration_variable_node(LINE, 0, $1, *$2, nullptr); }
                   | data_type  tIDENTIFIER '=' expr               { $$ = new fir::declaration_variable_node(LINE, 0, $1, *$2, $4); }
                   ;
@@ -119,7 +119,7 @@ funcDef            :     data_type  tIDENTIFIER '(' args ')' optDefault block   
                    ;
 
 optDefault         :    /* empty */                { $$ = new fir::return_node(LINE);  }
-                   | tDEFAULT literal              { $$ = new fir::return_node(LINE, new cdk::sequence_node(LINE, $2)); }
+                   | tDEFAULT literal              { $$ = new fir::return_node(LINE, $2); }
                    ;
 
 optVariableDec     : /* empty */            { $$ = nullptr; }
@@ -165,17 +165,14 @@ instruction        : tIF expr tTHEN instruction                                {
                    | expr ';'                                                  { $$ = new fir::evaluation_node(LINE, $1); }
                    | tWRITE   exprs ';'                                        { $$ = new fir::write_node(LINE, $2, false); }
                    | tWRITELN exprs ';'                                        { $$ = new fir::write_node(LINE, $2, true); }
-                   | tLEAVE                                                    { $$ = new fir::leave_node(LINE);  }
-                   | tRESTART                                                  { $$ = new fir::restart_node(LINE); }
-                   | return                                                    { $$ = $1; }
+                   | tLEAVE ';'                                                { $$ = new fir::leave_node(LINE);  }
+                   | tRESTART ';'                                              { $$ = new fir::restart_node(LINE); }
+                   | tRETURN                                                   { $$ = new fir::return_node(LINE); }
+                   | tRETURN expr ';'                                          { $$ = new fir::return_node(LINE, $2); }
                    | block                                                     { $$ = $1; }
                    ;
 
-return             : tRETURN ';'                      { $$ = new fir::return_node(LINE, nullptr); }
-                   | tRETURN exprs ';'                { $$ = new fir::return_node(LINE, $2); }
-                   ;
-
-expr                : integer                         { $$ = $1; }
+expr               : integer                         { $$ = $1; }
                    | real                             { $$ = $1; }
                    | string                           { $$ = new cdk::string_node(LINE, $1); }
                    | tNULLPTR                         { $$ = new fir::null_pointer_node(LINE); }

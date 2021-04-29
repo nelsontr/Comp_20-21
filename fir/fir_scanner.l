@@ -24,7 +24,7 @@ SPACE        [ \t\r\n]
 %x X_STRING X_COMMENT X_SPECIALCHAR
 %%
 
-                                    {yydebug=1;}
+                                    {yydebug=0;}
 
   /* OPERATORS */
 

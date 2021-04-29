@@ -18,8 +18,8 @@ namespace fir {
     }
 
   public:
-    inline bool *nLine(){
-        return &_nLine;
+    inline bool nLine(){
+        return _nLine;
     }
 
   public:

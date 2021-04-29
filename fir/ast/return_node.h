@@ -11,14 +11,14 @@ namespace fir{
    */
 
   class return_node: public cdk::basic_node {
-    cdk::sequence_node *_value;
+    cdk::expression_node *_value;
 
     public:
-    inline return_node(int lineno, cdk::sequence_node *value = nullptr) :
+    inline return_node(int lineno, cdk::expression_node *value = nullptr) :
         cdk::basic_node(lineno), _value(value){
     }
 
-    cdk::sequence_node *value(){
+    cdk::expression_node *value(){
       return _value;
     }
 
