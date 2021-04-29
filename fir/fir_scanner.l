@@ -24,6 +24,8 @@ SPACE        [ \t\r\n]
 %x X_STRING X_COMMENT X_SPECIALCHAR
 %%
 
+                                    {yydebug=1;}
+
   /* OPERATORS */
 
 "sizeof"                            return tSIZEOF;
@@ -44,11 +46,11 @@ SPACE        [ \t\r\n]
 
   /*PROLOGUE*/
 
-"@"{SPACE}*"{"                      return tPROLOGUE;
+@                                   return *yytext;
 
 
   /*EPILOGUE*/
-">>"{SPACE}*"{"                     return tEPILOGUE;
+>                                   return *yytext;
 
   /*DEFAULT RETURN*/
 
@@ -57,7 +59,6 @@ SPACE        [ \t\r\n]
 
   /* INPUT OUTPUT */
 
-"@"                                 return tINPUT;
 "write"                             return tWRITE;
 "writeln"                           return tWRITELN;
 
