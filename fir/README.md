@@ -4,6 +4,13 @@
 
 * Antes de fazer commit importante fazer `make clean` e só depois `git push`
 
+## Como meter em imagem?
+
+```bash
+fir myprog.fir -o myprog.xml
+java -cp xml2dot.jar xml2dot.xml2dot myprog.xml
+```
+
 ## O que falta?
 
 ## Palavras reservadas
