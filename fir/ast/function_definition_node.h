@@ -14,18 +14,18 @@ namespace fir {
     std::string _identifier;
     cdk::sequence_node *_arguments;
     cdk::basic_node *_returnVal;
-    fir::block_node *_block;
+    cdk::sequence_node *_body;
 
   public:
     function_definition_node(int lineno, int qualifier, const std::string &identifier, cdk::sequence_node *arguments,
-                             cdk::basic_node *return_val, fir::block_node *block) :
-        cdk::typed_node(lineno), _qualifier(qualifier), _identifier(identifier), _arguments(arguments), _returnVal(return_val), _block(block) {
+                             cdk::basic_node *return_val, cdk::sequence_node *body) :
+        cdk::typed_node(lineno), _qualifier(qualifier), _identifier(identifier), _arguments(arguments), _returnVal(return_val), _body(body) {
       type(cdk::primitive_type::create(0, cdk::TYPE_VOID));
     }
 
     function_definition_node(int lineno, int qualifier, std::shared_ptr<cdk::basic_type> funType, const std::string &identifier,
-                             cdk::sequence_node *arguments, cdk::basic_node *return_val, fir::block_node *block) :
-        cdk::typed_node(lineno), _qualifier(qualifier), _identifier(identifier), _arguments(arguments), _returnVal(return_val), _block(block) {
+                             cdk::sequence_node *arguments, cdk::basic_node *return_val, cdk::sequence_node *body) :
+        cdk::typed_node(lineno), _qualifier(qualifier), _identifier(identifier), _arguments(arguments), _returnVal(return_val), _body(body) {
       type(funType);
     }
 
@@ -48,8 +48,8 @@ namespace fir {
       return _returnVal;
     }
 
-    fir::block_node* block() {
-      return _block;
+    cdk::sequence_node* body() {
+      return _body;
     }
 
     void accept(basic_ast_visitor *sp, int level) {
