@@ -232,7 +232,6 @@ void fir::xml_writer::do_if_else_node(fir::if_else_node *const node, int lvl) {
 void fir::xml_writer::do_return_node(fir::return_node *const node, int lvl) {
     //ASSERT_SAFE;
     openTag(node, lvl);
-    if (node->value()) node->value()->accept(this, lvl + 4);
     closeTag(node, lvl);
 }
 
@@ -317,14 +316,14 @@ void fir::xml_writer::do_function_declaration_node(fir::function_declaration_nod
 void fir::xml_writer::do_function_definition_node(fir::function_definition_node *const node, int lvl) {
     //ASSERT_SAFE_EXPRESSIONS;
     reset_new_symbol();
-    if (node->block()) _symtab.push();
+    if (node->body()) _symtab.push();
 
     os() << std::string(lvl, ' ') << "<" << node->label() << " name='" << node->identifier() << "' qualifier='"
          << qualifier_name(node->qualifier()) << "' type='" << cdk::to_string(node->type()) << "'>" << std::endl;
 
     if (node->arguments()) {
         openTag("arguments", lvl + 2);
-        if (node->block()) node->arguments()->accept(this, lvl + 4);
+        if (node->body()) node->arguments()->accept(this, lvl + 4);
         else {
             _symtab.push();
             node->arguments()->accept(this, lvl + 4);
@@ -333,14 +332,14 @@ void fir::xml_writer::do_function_definition_node(fir::function_definition_node 
         closeTag("arguments", lvl + 2);
     }
 
-    if (node->block()) {
+    if (node->body()) {
         openTag("block", lvl + 2);
-        node->block()->accept(this, lvl + 4);
+        node->body()->accept(this, lvl + 4);
         closeTag("block", lvl + 2);
     }
 
     closeTag(node, lvl);
-    if (node->block()) _symtab.pop();
+    if (node->body()) _symtab.pop();
 }
 
 void fir::xml_writer::do_identify_node(fir::identify_node *const node, int lvl) {

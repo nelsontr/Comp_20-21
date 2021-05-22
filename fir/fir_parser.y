@@ -59,7 +59,7 @@
 %nonassoc '(' ')' '[' ']'
 
 %type <node> file decl variableDec funcDec funcDef arg instruction optDefault
-%type <sequence> decls variableDecs optVariableDec args instructions optionalInstruc exprs opt_exprs body
+%type <sequence> decls variableDecs optVariableDec args instructions optionalInstruc exprs opt_exprs body body1 body2
 %type <expression> expr integer real literal
 %type <s> string
 %type <lvalue> lval
@@ -119,8 +119,8 @@ funcDef            :     data_type  tIDENTIFIER '(' args ')' optDefault body    
                    | void_type '?'  tIDENTIFIER '(' args ')' optDefault body       { $$ = new fir::function_definition_node(LINE, 2, *$3, $5, $7, $8); delete $3; }
                    ;
 
-optDefault         :    /* empty */                { $$ = new fir::return_node(LINE);  }
-                   | tDEFAULT literal              { $$ = new fir::return_node(LINE, $2); }
+optDefault         :    /* empty */                { $$ = nullptr; }
+                   | tDEFAULT literal              { $$ = new fir::return_node(LINE); }
                    ;
 
 optVariableDec     : /* empty */            { $$ = nullptr; }
@@ -148,15 +148,18 @@ epil               : '>' '>' block         { $$ = $3; }
 prolg              : '@' block         { $$ = $2; }
                    ;
 
-body               : block                                                  { $$ = new cdk::sequence_node(LINE, $1); }
-                   | prolg                                                  { $$ = new cdk::sequence_node(LINE, $1); }
-                   | epil                                                  { $$ = new cdk::sequence_node(LINE, $1); }
-                   | prolg epil                                            { $$ = new cdk::sequence_node(LINE, $1, $2); }
-                   | prolg block                                            { $$ = new cdk::sequence_node(LINE, $1, $2); }
-                   | block epil                                             { $$ = new cdk::sequence_node(LINE, $1, $2); }
-                   | prolg block epil                                       { $$ = new cdk::sequence_node(LINE, $1, $2, $3); }
+body               : prolg body1 body2                                    { $$ = new cdk::sequence_node(LINE, $1); }
+                   | block body2                                          { $$ = new cdk::sequence_node(LINE, $1); }
+                   | epil                                                 { $$ = new cdk::sequence_node(LINE, $1); }
                    ;
 
+body1              : /*empty*/                         { $$ = new cdk::sequence_node(LINE);}
+                   | block body2                       { $$ = new cdk::sequence_node(LINE, $1); }
+                   ;
+
+body2              : /*empty*/                         { $$ = new cdk::sequence_node(LINE);}
+                   | epil                             { $$ = new cdk::sequence_node(LINE, $1); }
+                   ;
 
 instructions       : instruction                      { $$ = new cdk::sequence_node(LINE, $1);     }
                    | instructions instruction         { $$ = new cdk::sequence_node(LINE, $2, $1); }
@@ -174,13 +177,15 @@ instruction        : tIF expr tTHEN instruction                                {
                    | tWRITE   exprs ';'                                        { $$ = new fir::write_node(LINE, $2, false); }
                    | tWRITELN exprs ';'                                        { $$ = new fir::write_node(LINE, $2, true); }
                    | tLEAVE ';'                                                { $$ = new fir::leave_node(LINE);  }
-                   | tLEAVE integer ';'                                        { $$ = new fir::leave_node(LINE, $2);  }
-                   | tRESTART integer ';'                                      { $$ = new fir::restart_node(LINE, $2); }
-                   | tRESTART ';'                                              { $$ = new fir::restart_node(LINE); }
+                   | tLEAVE tINTEGER ';'                                        { $$ = new fir::leave_node(LINE, $2);  }
+                   | tRESTART tINTEGER ';'                                      { $$ = new fir::restart_node(LINE, $2); }
+                   | tRESTART ';'                                      { $$ = new fir::restart_node(LINE); }
                    | tRETURN                                                   { $$ = new fir::return_node(LINE); }
                    | block                                                     { $$ = $1; }
                    ;
 
+
+  /*nao se tem que fazer uma */
 expr               : integer                         { $$ = $1; }
                    | real                             { $$ = $1; }
                    | string                           { $$ = new cdk::string_node(LINE, $1); }

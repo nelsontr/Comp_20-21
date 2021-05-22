@@ -132,17 +132,18 @@ SPACE        [ \t\r\n]
 [1-9][0-9]*                              yylval.i = strtol(yytext, NULL, 10); return tINTEGER;
 
   /* FLOATS */
-{FLOAT}                             yylval.d = strtod(yytext, NULL); return tREAL;
 
-[0-9]+"."[0-9]+ {try{yylval.d = std::stod(yytext, NULL);
-                  double d = std::stod(yytext, NULL);
-                  if(int(d) == d){
-                    yylval.i = int(d);
-                    return tINTEGER;
-                  }
-                  return tREAL;
-                  }catch (std::out_of_range& e) { yyerror("Real out range."); }
+
+
+"."[0-9]+ {try {yylval.d = std::stod(yytext, NULL);
+                double d = std::stod(yytext, NULL);
+                if(int(d) == d){
+                  yylval.i = int(d);
+                  return tINTEGER;
                 }
+                return tREAL;
+                } catch (std::out_of_range& e) {yyerror("Real out of range.");}
+          }
 
 [0-9]+"." { try { yylval.d = std::stod(yytext, NULL);
                 double d = std::stod(yytext, NULL);
@@ -154,15 +155,15 @@ SPACE        [ \t\r\n]
                 } catch (std::out_of_range& e) {yyerror("Real out of range."); }
             }
 
-"."[0-9]+ {try {yylval.d = std::stod(yytext, NULL);
-                double d = std::stod(yytext, NULL);
-                if(int(d) == d){
-                  yylval.i = int(d);
-                  return tINTEGER;
+[0-9]+"."[0-9]+ {try{yylval.d = std::stod(yytext, NULL);
+                  double d = std::stod(yytext, NULL);
+                  if(int(d) == d){
+                    yylval.i = int(d);
+                    return tINTEGER;
+                  }
+                  return tREAL;
+                  }catch (std::out_of_range& e) { yyerror("Real out range."); }
                 }
-                return tREAL;
-                } catch (std::out_of_range& e) {yyerror("Real out of range.");}
-          }
 
 [0-9]+("."[0-9]+)?[Ee][-+]?[0-9]+  {try { yylval.d = std::stod(yytext, NULL);
                                           double d = std::stod(yytext, NULL);
