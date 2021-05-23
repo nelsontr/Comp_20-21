@@ -13,6 +13,32 @@ void fir::type_checker::do_sequence_node(cdk::sequence_node *const node, int lvl
 
 //---------------------------------------------------------------------------
 
+void fir::type_checker::do_logical_operation(cdk::binary_operation_node *const node, int lvl){
+  ASSERT_UNSPEC;
+  node->left()->accept(this, lvl + 2);
+  node->right()->accept(this, lvl +2);
+
+  if(!node->left()->is_typed(cdk::TYPE_INT) || !node->right()->is_typed(cdk::TYPE_INT))
+    throw std::string("argument must type integer.");
+
+  if(node->left()->is_typed(cdk::TYPE_UNSPEC)){
+    fir::read_node *inputLeft = dynamic_cast<fir::read_node *>(node->left());
+    if(inputLeft != nullptr)
+      node->type(cdk::primitive_type::create(4, cdk::TYPE_INT));
+    else
+      throw std::string("Specified node not found.");
+  }
+
+  if(node->right()->is_typed(cdk::TYPE_UNSPEC)){
+    fir::read_node *inputRight = dynamic_cast<fir::read_node *>(node->right());
+    if(inputRight != nullptr)
+      node->type(cdk::primitive_type::create(4, cdk::TYPE_INT));
+    else
+      throw std::string("Specified node not found.");
+  }
+
+}
+
 void fir::type_checker::do_nil_node(cdk::nil_node *const node, int lvl) {
   // EMPTY
 }
@@ -20,16 +46,33 @@ void fir::type_checker::do_data_node(cdk::data_node *const node, int lvl) {
   // EMPTY
 }
 void fir::type_checker::do_double_node(cdk::double_node *const node, int lvl) {
-  // EMPTY
+  ASSERT_UNSPEC;
+  node->type(cdk::primitive_type::create(8, cdk::TYPE_DOUBLE));
 }
 void fir::type_checker::do_not_node(cdk::not_node *const node, int lvl) {
-  // EMPTY
+  ASSERT_UNSPEC;
+  node->argument()->accept(this, lvl + 2);
+  if (node->argument()->is_typed(cdk::TYPE_INT))
+    node->type(cdk::primitive_type::create(4, cdk::TYPE_INT));
+  else if (node->argument()->is_typed(cdk::TYPE_UNSPEC)) {
+    fir::read_node *input = dynamic_cast<fir::read_node*>(node->argument());
+
+    if(input != nullptr) {
+      node->type(cdk::primitive_type::create(4, cdk::TYPE_INT));
+      node->argument()->type(cdk::primitive_type::create(4, cdk::TYPE_INT));
+    }
+    else
+      throw std::string("Specified node not found.");
+  }
+  else
+    throw std::string("Expected Integer type.");
+
 }
 void fir::type_checker::do_and_node(cdk::and_node *const node, int lvl) {
-  // EMPTY
+  do_logical_operation(node, lvl);
 }
 void fir::type_checker::do_or_node(cdk::or_node *const node, int lvl) {
-  // EMPTY
+  do_logical_operation(node, lvl);
 }
 
 //---------------------------------------------------------------------------
@@ -171,16 +214,25 @@ void fir::type_checker::do_read_node(fir::read_node *const node, int lvl) {
 
 void fir::type_checker::do_while_node(fir::while_node *const node, int lvl) {
   node->condition()->accept(this, lvl + 4);
+  if (!node->condition()->is_typed(cdk::TYPE_INT)) 
+    throw std::string("Expected integer condition.");
 }
 
 //---------------------------------------------------------------------------
 
 void fir::type_checker::do_if_node(fir::if_node *const node, int lvl) {
   node->condition()->accept(this, lvl + 4);
+  if (!node->condition()->is_typed(cdk::TYPE_INT)) 
+    throw std::string("Expected integer condition.");
+  node->block()->accept(this, lvl + 4);
 }
 
 void fir::type_checker::do_if_else_node(fir::if_else_node *const node, int lvl) {
   node->condition()->accept(this, lvl + 4);
+  if (!node->condition()->is_typed(cdk::TYPE_INT)) 
+    throw std::string("Expected integer condition.");
+  node->thenblock()->accept(this, lvl + 4);
+  node->elseblock()->accept(this, lvl + 4);
 }
 
 
@@ -188,16 +240,16 @@ void fir::type_checker::do_if_else_node(fir::if_else_node *const node, int lvl) 
 
 
 void fir::type_checker::do_return_node(fir::return_node *const node, int lvl) {
-  // EMPTY
+  // EMPTY feito
 }
 void fir::type_checker::do_leave_node(fir::leave_node *const node, int lvl) {
-  // EMPTY
+  // EMPTY feito
 }
 void fir::type_checker::do_while_finally_node(fir::while_finally_node *const node, int lvl) {
   // EMPTY
 }
 void fir::type_checker::do_restart_node(fir::restart_node *const node, int lvl) {
-  // EMPTY
+  // EMPTY feito
 }
 void fir::type_checker::do_declaration_variable_node(fir::declaration_variable_node *const node, int lvl) {
   // EMPTY
@@ -215,23 +267,37 @@ void fir::type_checker::do_identify_node(fir::identify_node *const node, int lvl
   // EMPTY
 }
 void fir::type_checker::do_null_pointer_node(fir::null_pointer_node *const node, int lvl) {
-  // EMPTY
+  ASSERT_UNSPEC;
+  node->type(cdk::reference_type::create(4,cdk::primitive_type::create(0, cdk::TYPE_VOID)));
 }
 void fir::type_checker::do_pointer_node(fir::pointer_node *const node, int lvl) {
   // EMPTY
 }
 void fir::type_checker::do_size_of_node(fir::size_of_node *const node, int lvl) {
-  // EMPTY
+  ASSERT_UNSPEC;
+  node->statement()->accept(this, lvl + 2);
+  node->type(cdk::primitive_type::create(4, cdk::TYPE_INT));
 }
 void fir::type_checker::do_address_of_node(fir::address_of_node *const node, int lvl) {
-  // EMPTY
+  ASSERT_UNSPEC;
+  node->lvalue()->accept(this, lvl + 2);
+  node->type(cdk::reference_type::create(4, node->lvalue()->type()));
 }
 void fir::type_checker::do_block_node(fir::block_node *const node, int lvl) {
-  // EMPTY
+  if (node->declarations()) node->declarations()->accept(this, lvl + 2);
+  if (node->instructions()) node->instructions()->accept(this, lvl + 2);
 }
+
 void fir::type_checker::do_write_node(fir::write_node *const node, int lvl) {
   // EMPTY
 }
 void fir::type_checker::do_alloc_node(fir::alloc_node *const node, int lvl) {
-  // EMPTY
+  ASSERT_UNSPEC;
+  node->argument()->accept(this, lvl + 2);
+
+  if (!node->argument()->is_typed(cdk::TYPE_INT)) {
+    throw std::string("Wrong type.");
+  }
+
+  node->type(cdk::reference_type::create(4, cdk::primitive_type::create(0, cdk::TYPE_UNSPEC)));
 }

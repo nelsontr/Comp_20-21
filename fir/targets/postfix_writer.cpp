@@ -309,22 +309,22 @@ void fir::postfix_writer::do_return_node(fir::return_node *const node, int lvl)
 }
 void fir::postfix_writer::do_leave_node(fir::leave_node *const node, int lvl)
 {
-  if (_whileEnd.size() != 0)
+  /*if (_whileEnd.size() != 0)
     _pf.JMP(mklbl(_whileEnd.top()));
   else
     throw new std::string("Cannot perform a break outside a 'for' loop.");
-}
+*/}
 void fir::postfix_writer::do_while_finally_node(fir::while_finally_node *const node, int lvl)
 {
   // EMPTY
 }
 void fir::postfix_writer::do_restart_node(fir::restart_node *const node, int lvl)
 {
-  if (_whileStart.size() != 0)
+  /*if (_whileStart.size() != 0)
     _pf.JMP(mklbl(_whileStart.top()));
   else
     throw new std::string("Cannot perform a continue outside a 'for' loop.");
-}
+*/}
 void fir::postfix_writer::do_declaration_variable_node(fir::declaration_variable_node *const node, int lvl)
 {
   // EMPTY
@@ -359,7 +359,7 @@ void fir::postfix_writer::do_pointer_node(fir::pointer_node *const node, int lvl
 {
   ASSERT_SAFE_EXPRESSIONS;
 
-  node->pointer()->accept(this, lvl);
+  node->base()->accept(this, lvl);
   node->index()->accept(this, lvl);
   _pf.INT(node->type()->size());
   _pf.MUL();
@@ -368,7 +368,7 @@ void fir::postfix_writer::do_pointer_node(fir::pointer_node *const node, int lvl
 void fir::postfix_writer::do_size_of_node(fir::size_of_node *const node, int lvl)
 {
   ASSERT_SAFE_EXPRESSIONS;
-  _pf.INT(node->value()->type()->size());
+  _pf.INT(node->statement()->type()->size());
 }
 void fir::postfix_writer::do_address_of_node(fir::address_of_node *const node, int lvl)
 {
@@ -391,7 +391,7 @@ void fir::postfix_writer::do_write_node(fir::write_node *const node, int lvl)
 
   //VER FOR ANTERIOR
 
-  if (node->argument()->is_typed(cdk::TYPE_INT))
+  /*if (node->argument()->is_typed(cdk::TYPE_INT))
   {
     //_symbols_to_declare.insert("printi");
     _pf.CALL("printi");
@@ -408,15 +408,15 @@ void fir::postfix_writer::do_write_node(fir::write_node *const node, int lvl)
     //_symbols_to_declare.insert("prints");
     _pf.CALL("prints");
     _pf.TRASH(4);
-  }
+  }*/
 }
 void fir::postfix_writer::do_alloc_node(fir::alloc_node *const node, int lvl)
 {
   ASSERT_SAFE_EXPRESSIONS;
-  int typeSize = cdk::reference_type_cast(node->type())->referenced()->size();
+  //size_t typeSize = cdk::reference_type_cast(node->type())->referenced()->size();
 
   node->argument()->accept(this, lvl + 2);
-  _pf.INT(typeSize);
+ // _pf.INT(typeSize);
   _pf.MUL();
   _pf.ALLOC();
   _pf.SP();
