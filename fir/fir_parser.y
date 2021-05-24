@@ -46,7 +46,7 @@
 %nonassoc tIF
 %nonassoc tTHEN
 %nonassoc tELSE
-%nonassoc tATOA
+%nonassoc tFINALLYX
 %nonassoc tFINALLY
 
 %right '='
@@ -165,7 +165,7 @@ block             : '{' optVariableDec optionalInstruc '}'                  { $$
 
 instruction        : tIF expr tTHEN instruction                                { $$ = new fir::if_node(LINE, $2, $4); }
                    | tIF expr tTHEN instruction tELSE instruction              { $$ = new fir::if_else_node(LINE, $2, $4, $6); }
-                   | tWHILE expr tDO instruction %prec tATOA                             { $$ = new fir::while_node(LINE, $2, $4); }
+                   | tWHILE expr tDO instruction %prec tFINALLYX                            { $$ = new fir::while_node(LINE, $2, $4); }
                    | tWHILE expr tDO instruction tFINALLY instruction         { $$ = new fir::while_finally_node(LINE, $2, $4, $6); }
                    | expr ';'                                                  { $$ = new fir::evaluation_node(LINE, $1); }
                    | tWRITE   exprs ';'                                        { $$ = new fir::write_node(LINE, $2, false); }

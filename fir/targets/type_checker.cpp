@@ -8,7 +8,8 @@
 //---------------------------------------------------------------------------
 
 void fir::type_checker::do_sequence_node(cdk::sequence_node *const node, int lvl) {
-  // EMPTY
+  for(size_t i = 0; i < node->size(); i++) 
+    node->node(i)->accept(this, lvl + 2);
 }
 
 //---------------------------------------------------------------------------
@@ -203,11 +204,8 @@ void fir::type_checker::do_evaluation_node(fir::evaluation_node *const node, int
 //---------------------------------------------------------------------------
 
 void fir::type_checker::do_read_node(fir::read_node *const node, int lvl) {
-  try {
-    node->argument()->accept(this, lvl);
-  } catch (const std::string &id) {
-    throw "undeclared variable '" + id + "'";
-  }
+  ASSERT_UNSPEC;
+  node->type(cdk::primitive_type::create(0, cdk::TYPE_UNSPEC));
 }
 
 //---------------------------------------------------------------------------
@@ -224,15 +222,12 @@ void fir::type_checker::do_if_node(fir::if_node *const node, int lvl) {
   node->condition()->accept(this, lvl + 4);
   if (!node->condition()->is_typed(cdk::TYPE_INT)) 
     throw std::string("Expected integer condition.");
-  node->block()->accept(this, lvl + 4);
 }
 
 void fir::type_checker::do_if_else_node(fir::if_else_node *const node, int lvl) {
   node->condition()->accept(this, lvl + 4);
   if (!node->condition()->is_typed(cdk::TYPE_INT)) 
     throw std::string("Expected integer condition.");
-  node->thenblock()->accept(this, lvl + 4);
-  node->elseblock()->accept(this, lvl + 4);
 }
 
 
@@ -246,7 +241,10 @@ void fir::type_checker::do_leave_node(fir::leave_node *const node, int lvl) {
   // EMPTY feito
 }
 void fir::type_checker::do_while_finally_node(fir::while_finally_node *const node, int lvl) {
-  // EMPTY
+  node->condition()->accept(this, lvl + 4);
+  if (!node->condition()->is_typed(cdk::TYPE_INT)) 
+    throw std::string("Expected integer condition.");
+  
 }
 void fir::type_checker::do_restart_node(fir::restart_node *const node, int lvl) {
   // EMPTY feito

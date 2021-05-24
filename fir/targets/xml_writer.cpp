@@ -172,7 +172,6 @@ void fir::xml_writer::do_evaluation_node(fir::evaluation_node *const node, int l
 void fir::xml_writer::do_read_node(fir::read_node *const node, int lvl) {
     //ASSERT_SAFE_EXPRESSIONS;
     openTag(node, lvl);
-    node->argument()->accept(this, lvl + 2);
     closeTag(node, lvl);
 }
 
