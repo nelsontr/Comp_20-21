@@ -38,7 +38,7 @@
 %token <i> tINTEGER
 %token <d> tREAL
 %token <s> tIDENTIFIER tSTRING
-%token tIF tTHEN tWHILE tDO tFINALLY
+%token tIF tTHEN tWHILE tDO 
 %token tWRITELN tWRITE tINPUT tOR  tAND
 %token tRETURN tRESTART tLEAVE tSIZEOF tDEFAULT
 %token tVOID_TYPE tINT_TYPE tFLOAT_TYPE tSTRING_TYPE tNULLPTR
@@ -46,6 +46,8 @@
 %nonassoc tIF
 %nonassoc tTHEN
 %nonassoc tELSE
+%nonassoc tATOA
+%nonassoc tFINALLY
 
 %right '='
 %left tOR
@@ -92,6 +94,14 @@ variableDec       : data_type '*' tIDENTIFIER                    { $$ = new fir:
                   | data_type  tIDENTIFIER '=' expr               { $$ = new fir::declaration_variable_node(LINE, 0, $1, *$2, $4); }
                   ;
 
+variableDecs       : variableDec ';'                               { $$ = new cdk::sequence_node(LINE, $1);     }
+                   | variableDecs ',' variableDec ';'              { $$ = new cdk::sequence_node(LINE, $3, $1); }
+                   ;
+
+optVariableDec     : /* empty */            { $$ = nullptr; }
+                   | variableDecs           { $$ = $1; }
+                   ;
+
 data_type          : tSTRING_TYPE           { $$ = cdk::primitive_type::create(4, cdk::TYPE_STRING);  }
                    | tINT_TYPE              { $$ = cdk::primitive_type::create(4, cdk::TYPE_INT);     }
                    | tFLOAT_TYPE            { $$ = cdk::primitive_type::create(8, cdk::TYPE_DOUBLE);  }
@@ -99,13 +109,13 @@ data_type          : tSTRING_TYPE           { $$ = cdk::primitive_type::create(4
                    ;
 
 void_type          : tVOID_TYPE             { $$ = cdk::primitive_type::create(0, cdk::TYPE_VOID); }
-                   ;
 
+                   ;
 funcDec            :     data_type  tIDENTIFIER '(' args ')'                  { $$ = new fir::function_declaration_node(LINE, 0,  $1, *$2, $4); delete $2; }
                    | data_type '*'  tIDENTIFIER '(' args ')'                  { $$ = new fir::function_declaration_node(LINE, 1,  $1, *$3, $5); delete $3; }
                    | data_type '?'  tIDENTIFIER '(' args ')'                  { $$ = new fir::function_declaration_node(LINE, 2,  $1, *$3, $5); delete $3; }
                    /* Void */
-                   |     void_type  tIDENTIFIER '(' args ')'                  { $$ = new fir::function_declaration_node(LINE, 0, *$2, $4); delete $2; }
+                   | void_type  tIDENTIFIER '(' args ')'                  { $$ = new fir::function_declaration_node(LINE, 0, *$2, $4); delete $2; }
                    | void_type '*'  tIDENTIFIER '(' args ')'                  { $$ = new fir::function_declaration_node(LINE, 1, *$3, $5); delete $3; }
                    | void_type '?'  tIDENTIFIER '(' args ')'                  { $$ = new fir::function_declaration_node(LINE, 2, *$3, $5); delete $3; }
                    ;
@@ -118,19 +128,7 @@ funcDef            :     data_type  tIDENTIFIER '(' args ')' optDefault body    
                    | void_type '*'  tIDENTIFIER '(' args ')' optDefault body       { $$ = new fir::function_definition_node(LINE, 1, *$3, $5, $7, $8); delete $3; }
                    | void_type '?'  tIDENTIFIER '(' args ')' optDefault body       { $$ = new fir::function_definition_node(LINE, 2, *$3, $5, $7, $8); delete $3; }
                    ;
-
-optDefault         :    /* empty */                { $$ = nullptr; }
-                   | tDEFAULT literal              { $$ = new fir::return_node(LINE); }
-                   ;
-
-optVariableDec     : /* empty */            { $$ = nullptr; }
-                   | variableDecs           { $$ = $1; }
-                   ;
-
-variableDecs       : variableDec ';'                               { $$ = new cdk::sequence_node(LINE, $1);     }
-                   | variableDecs ',' variableDec ';'              { $$ = new cdk::sequence_node(LINE, $3, $1); }
-                   ;
-
+                   
 args               : /* empty */         	    { $$ = new cdk::sequence_node(LINE);  }
                    | arg                      { $$ = new cdk::sequence_node(LINE, $1);     }
                    | args ',' arg             { $$ = new cdk::sequence_node(LINE, $3, $1); }
@@ -139,21 +137,16 @@ args               : /* empty */         	    { $$ = new cdk::sequence_node(LINE
 arg                : data_type tIDENTIFIER        { $$ = new fir::declaration_variable_node(LINE, 0, $1, *$2, nullptr); }
                    ;
 
-block             : '{' optVariableDec optionalInstruc '}'                  { $$ = new fir::block_node(LINE, $2, $3); }             
-                  ;
-
-epil               : '>' '>' block         { $$ = $3; }
+optDefault         :    /* empty */                { $$ = nullptr; }
+                   | tDEFAULT literal              { $$ = new fir::return_node(LINE); }
                    ;
 
-prolg              : '@' block         { $$ = $2; }
-                   ;
-
-body               : prolg body1 body2                                    { $$ = new cdk::sequence_node(LINE, $1); }
+body               : prolg body1                                          { $$ = new cdk::sequence_node(LINE, $1); }
                    | block body2                                          { $$ = new cdk::sequence_node(LINE, $1); }
                    | epil                                                 { $$ = new cdk::sequence_node(LINE, $1); }
                    ;
 
-body1              : /*empty*/                         { $$ = new cdk::sequence_node(LINE);}
+body1              : /*empty*/                         { $$ = nullptr;}
                    | block body2                       { $$ = new cdk::sequence_node(LINE, $1); }
                    ;
 
@@ -161,18 +154,19 @@ body2              : /*empty*/                         { $$ = new cdk::sequence_
                    | epil                             { $$ = new cdk::sequence_node(LINE, $1); }
                    ;
 
-instructions       : instruction                      { $$ = new cdk::sequence_node(LINE, $1);     }
-                   | instructions instruction         { $$ = new cdk::sequence_node(LINE, $2, $1); }
+prolg              : '@' block         { $$ = $2; }
                    ;
 
-optionalInstruc    : /* empty */                      { $$ = new cdk::sequence_node(LINE); }
-                   | instructions                     { $$ = $1; }
+epil               : '>' '>' block         { $$ = $3; }
                    ;
+
+block             : '{' optVariableDec optionalInstruc '}'                  { $$ = new fir::block_node(LINE, $2, $3); }             
+                  ;
 
 instruction        : tIF expr tTHEN instruction                                { $$ = new fir::if_node(LINE, $2, $4); }
                    | tIF expr tTHEN instruction tELSE instruction              { $$ = new fir::if_else_node(LINE, $2, $4, $6); }
-                   | tWHILE expr tDO instruction                               { $$ = new fir::while_node(LINE, $2, $4); }
-                   | tWHILE expr tDO instruction tFINALLY instructions         { $$ = new fir::while_finally_node(LINE, $2, $4, $6); }
+                   | tWHILE expr tDO instruction %prec tATOA                             { $$ = new fir::while_node(LINE, $2, $4); }
+                   | tWHILE expr tDO instruction tFINALLY instruction         { $$ = new fir::while_finally_node(LINE, $2, $4, $6); }
                    | expr ';'                                                  { $$ = new fir::evaluation_node(LINE, $1); }
                    | tWRITE   exprs ';'                                        { $$ = new fir::write_node(LINE, $2, false); }
                    | tWRITELN exprs ';'                                        { $$ = new fir::write_node(LINE, $2, true); }
@@ -183,6 +177,15 @@ instruction        : tIF expr tTHEN instruction                                {
                    | tRETURN                                                   { $$ = new fir::return_node(LINE); }
                    | block                                                     { $$ = $1; }
                    ;
+
+instructions       : instruction                      { $$ = new cdk::sequence_node(LINE, $1);     }
+                   | instructions instruction         { $$ = new cdk::sequence_node(LINE, $2, $1); }
+                   ;
+
+optionalInstruc    : /* empty */                      { $$ = new cdk::sequence_node(LINE); }
+                   | instructions                     { $$ = $1; }
+                   ;
+
 
 
   /*nao se tem que fazer uma */
@@ -223,14 +226,10 @@ expr               : integer                         { $$ = $1; }
                    | '[' expr ']'                     { $$ = new fir::alloc_node(LINE, $2); }
                    | lval '?'                         { $$ = new fir::address_of_node(LINE, $1);}
                    ;
+                   
 
   /*expr2              ;*/
 
-lval               : tIDENTIFIER                                { $$ = new cdk::variable_node(LINE, *$1); delete $1; }
-                   | lval '[' expr ']'                        { $$ = new fir::pointer_node(LINE, new cdk::rvalue_node(LINE, $1), $3); }
-                   | '(' expr ')' '[' expr ']'                  { $$ = new fir::pointer_node(LINE, $2, $5); }
-                   | tIDENTIFIER '(' opt_exprs ')' '[' expr ']' { $$ = new fir::pointer_node(LINE, new fir::function_call_node(LINE, *$1, $3), $6); }
-                   ;
 
 exprs              : expr                             { $$ = new cdk::sequence_node(LINE, $1);     }
                    | exprs ',' expr                   { $$ = new cdk::sequence_node(LINE, $3, $1); }
@@ -240,10 +239,6 @@ opt_exprs          : /* empty */                      { $$ = new cdk::sequence_n
                    | exprs                            { $$ = $1; }
                    ;
 
-literal            : integer                          { $$ = $1; }
-                   | real                             { $$ = $1; }
-                   | string                           { $$ = new cdk::string_node(LINE, $1); }
-                   ;
 
 integer            : tINTEGER                         { $$ = new cdk::integer_node(LINE, $1); };
 real               : tREAL                            { $$ = new cdk::double_node(LINE, $1); };
@@ -251,6 +246,16 @@ string             : tSTRING                          { $$ = $1; }
                    | string tSTRING                   { $$ = new std::string(*$1 + *$2); delete $1; delete $2; }
                    ;
 
+literal            : integer                          { $$ = $1; }
+                   | real                             { $$ = $1; }
+                   | string                           { $$ = new cdk::string_node(LINE, $1); }
+                   ;
+                   
+lval               : tIDENTIFIER                                { $$ = new cdk::variable_node(LINE, *$1); delete $1; }
+                   | lval '[' expr ']'                        { $$ = new fir::pointer_node(LINE, new cdk::rvalue_node(LINE, $1), $3); }
+                   | '(' expr ')' '[' expr ']'                  { $$ = new fir::pointer_node(LINE, $2, $5); }
+                   | tIDENTIFIER '(' opt_exprs ')' '[' expr ']' { $$ = new fir::pointer_node(LINE, new fir::function_call_node(LINE, *$1, $3), $6); }
+                   ;
 
 
 %%
