@@ -28,8 +28,13 @@ namespace fir {
     int qualifier() {
       return _qualifier;
     }
+    
     const std::string& identifier() const {
       return _identifier;
+    }
+
+    inline void identifier(std::string identifier) {
+      _identifier = identifier;
     }
 
     cdk::sequence_node* arguments() {

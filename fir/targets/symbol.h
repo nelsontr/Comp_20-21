@@ -10,17 +10,40 @@ namespace fir {
   class symbol {
     std::shared_ptr<cdk::basic_type> _type;
     std::string _name;
-    long _value; // hack!
+    bool _function;
+    int _acessType; //Public=1, Private=2, Import=0
+    std::vector<std::shared_ptr<symbol>> _params; //Functions parameters
+    int _offset;
 
   public:
-    symbol(std::shared_ptr<cdk::basic_type> type, const std::string &name, long value) :
-        _type(type), _name(name), _value(value) {
+    symbol(std::shared_ptr<cdk::basic_type> type, const std::string &name, long value, bool function, int offset, int acessType, std::vector<std::shared_ptr<symbol>> params) :
+        _type(type), _name(name), _function(function), _acessType(acessType), _params(params) {
     }
 
     virtual ~symbol() {
       // EMPTY
     }
-
+    int offset() const {
+      return _offset;
+    }
+    int offset(int offset) {
+      return _offset = offset;
+    }
+    bool function() const {
+      return _function;
+    }
+    bool function(bool function) {
+      return _function = function;
+    }
+    int acessType() const {
+      return _acessType;
+    }
+    int acessType(int acessType) {
+      return _acessType = acessType;
+    }
+    std::vector<std::shared_ptr<symbol>> *params(){
+      return &_params;
+    }
     std::shared_ptr<cdk::basic_type> type() const {
       return _type;
     }
@@ -30,12 +53,11 @@ namespace fir {
     const std::string &name() const {
       return _name;
     }
-    long value() const {
-      return _value;
+
+    inline auto make_symbol(std::shared_ptr<cdk::basic_type> type, const std::string &name, bool function, int acessType, std::vector<std::shared_ptr<symbol>> params) {
+      return std::make_shared<symbol>(type, name, function, acessType, params);
     }
-    long value(long v) {
-      return _value = v;
-    }
+
   };
 
 } // fir

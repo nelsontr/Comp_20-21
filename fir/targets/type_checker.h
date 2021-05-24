@@ -10,7 +10,7 @@ namespace fir {
    */
   class type_checker: public basic_ast_visitor {
     cdk::symbol_table<fir::symbol> &_symtab;
-
+    std::shared_ptr<fir::symbol> _function;
     basic_ast_visitor *_parent;
 
   public:

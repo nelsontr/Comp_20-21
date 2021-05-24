@@ -8,7 +8,7 @@
 //---------------------------------------------------------------------------
 
 void fir::type_checker::do_sequence_node(cdk::sequence_node *const node, int lvl) {
-  for(size_t i = 0; i < node->size(); i++) 
+  for(size_t i = 0; i < node->size(); i++)
     node->node(i)->accept(this, lvl + 2);
 }
 
@@ -43,13 +43,16 @@ void fir::type_checker::do_logical_operation(cdk::binary_operation_node *const n
 void fir::type_checker::do_nil_node(cdk::nil_node *const node, int lvl) {
   // EMPTY
 }
+
 void fir::type_checker::do_data_node(cdk::data_node *const node, int lvl) {
   // EMPTY
 }
+
 void fir::type_checker::do_double_node(cdk::double_node *const node, int lvl) {
   ASSERT_UNSPEC;
   node->type(cdk::primitive_type::create(8, cdk::TYPE_DOUBLE));
 }
+
 void fir::type_checker::do_not_node(cdk::not_node *const node, int lvl) {
   ASSERT_UNSPEC;
   node->argument()->accept(this, lvl + 2);
@@ -69,9 +72,11 @@ void fir::type_checker::do_not_node(cdk::not_node *const node, int lvl) {
     throw std::string("Expected Integer type.");
 
 }
+
 void fir::type_checker::do_and_node(cdk::and_node *const node, int lvl) {
   do_logical_operation(node, lvl);
 }
+
 void fir::type_checker::do_or_node(cdk::or_node *const node, int lvl) {
   do_logical_operation(node, lvl);
 }
@@ -212,7 +217,7 @@ void fir::type_checker::do_read_node(fir::read_node *const node, int lvl) {
 
 void fir::type_checker::do_while_node(fir::while_node *const node, int lvl) {
   node->condition()->accept(this, lvl + 4);
-  if (!node->condition()->is_typed(cdk::TYPE_INT)) 
+  if (!node->condition()->is_typed(cdk::TYPE_INT))
     throw std::string("Expected integer condition.");
 }
 
@@ -220,18 +225,15 @@ void fir::type_checker::do_while_node(fir::while_node *const node, int lvl) {
 
 void fir::type_checker::do_if_node(fir::if_node *const node, int lvl) {
   node->condition()->accept(this, lvl + 4);
-  if (!node->condition()->is_typed(cdk::TYPE_INT)) 
+  if (!node->condition()->is_typed(cdk::TYPE_INT))
     throw std::string("Expected integer condition.");
 }
 
 void fir::type_checker::do_if_else_node(fir::if_else_node *const node, int lvl) {
   node->condition()->accept(this, lvl + 4);
-  if (!node->condition()->is_typed(cdk::TYPE_INT)) 
+  if (!node->condition()->is_typed(cdk::TYPE_INT))
     throw std::string("Expected integer condition.");
 }
-
-
-//CÓDIGO NOVO
 
 
 void fir::type_checker::do_return_node(fir::return_node *const node, int lvl) {
@@ -240,59 +242,143 @@ void fir::type_checker::do_return_node(fir::return_node *const node, int lvl) {
 void fir::type_checker::do_leave_node(fir::leave_node *const node, int lvl) {
   // EMPTY feito
 }
-void fir::type_checker::do_while_finally_node(fir::while_finally_node *const node, int lvl) {
-  node->condition()->accept(this, lvl + 4);
-  if (!node->condition()->is_typed(cdk::TYPE_INT)) 
-    throw std::string("Expected integer condition.");
-  
-}
 void fir::type_checker::do_restart_node(fir::restart_node *const node, int lvl) {
   // EMPTY feito
-}
-void fir::type_checker::do_declaration_variable_node(fir::declaration_variable_node *const node, int lvl) {
-  if(node->initializer())
-    node->initializer()->accept(this, lvl+2)
-
-  //tem problemas identifiers com virgulas
-  
-}
-void fir::type_checker::do_function_call_node(fir::function_call_node *const node, int lvl) {
-  // EMPTY
-}
-void fir::type_checker::do_function_declaration_node(fir::function_declaration_node *const node, int lvl) {
-  // EMPTY
-}
-void fir::type_checker::do_function_definition_node(fir::function_definition_node *const node, int lvl) {
-  if(node->)
 }
 void fir::type_checker::do_identify_node(fir::identify_node *const node, int lvl) {
   // EMPTY
 }
+void fir::type_checker::do_pointer_node(fir::pointer_node *const node, int lvl) {
+  // EMPTY
+}
+void fir::type_checker::do_write_node(fir::write_node *const node, int lvl) {
+  node->argument()->accept(this, lvl + 2);
+
+  for (size_t i = 0; i < node->argument()->size(); i++) {
+    auto type = dynamic_cast<cdk::expression_node*>(node->argument()->node(i))->type();
+    if (type->name() == cdk::TYPE_POINTER)
+      throw std::string("cannot print a pointer!");
+  }
+}
+
+
+void fir::type_checker::do_while_finally_node(fir::while_finally_node *const node, int lvl) {
+  node->condition()->accept(this, lvl + 4);
+  if (!node->condition()->is_typed(cdk::TYPE_INT))
+    throw std::string("Expected integer condition.");
+
+}
+
+void fir::type_checker::do_declaration_variable_node(fir::declaration_variable_node *const node, int lvl) {
+  if(node->initializer())
+    node->initializer()->accept(this, lvl+2);
+
+  //tem problemas identifiers com virgulas
+
+}
+
+void fir::type_checker::do_function_call_node(fir::function_call_node *const node, int lvl) {
+  ASSERT_UNSPEC;
+  if (node->identifier() == "fir")
+    node->identifier("_main");
+  else if (node->identifier() == "_main")
+    node->identifier("._main");
+
+  auto function = _symtab.find(node->identifier());
+
+  if (!function) throw std::string("undeclared function '" + node->identifier() + "'");
+  if (!function->function()) throw std::string(node->identifier() + "is not a function");
+  if (!function->type()) throw std::string("could not infer function return type");
+
+  node->type(function->type());
+  if (node->arguments() && node->arguments()->size() != 0)
+    node->arguments()->accept(this, lvl + 4);
+  else if (node->arguments()->size() != function->params()->size())
+    throw std::string("Function has different args size.");
+  //pode ter mais
+}
+
+void fir::type_checker::do_function_declaration_node(fir::function_declaration_node *const node, int lvl) {
+  if (node->identifier() == "fir")
+    node->identifier("_main");
+  else if (node->identifier() == "_main")
+    node->identifier("._main");
+
+  _function = symbol::make_symbol(node->type(), node->identifier(), true, node->qualifier(), node->arguments());
+
+  auto existent_symbol = _symtab.find(node->identifier());
+
+  if (existent_symbol == nullptr) {
+    _symtab.insert(node->identifier(), _function);
+    _parent->set_new_symbol(_function);
+    return;
+  }
+
+  //IF already exists
+  if (node->arguments()->size() == existent_symbol->params()->size()) {
+    for (size_t i=0; i < node->arguments()->size(); i++) {
+      cdk::typed_node* newArgument = (cdk::typed_node*) node->arguments()->node(i);
+      if (newArgument->type()->name() != existent_symbol->params()->at(i)->type()->name())
+        throw std::string("redecleared with different parameters");
+    }
+  }
+  else throw std::string("redecleared with different number of parameters");
+
+  //pode ter mais
+}
+
+void fir::type_checker::do_function_definition_node(fir::function_definition_node *const node, int lvl) {
+  if (node->identifier() == "fir")
+    node->identifier("_main");
+  else if (node->identifier() == "_main")
+    node->identifier("._main");
+
+  auto symbol = symbol::make_symbol(node->type(), node->identifier(), true, node->qualifier(), node->arguments());
+
+  auto existent_symbol = _symtab.find(node->identifier());
+
+  if (existent_symbol == nullptr) {
+    _symtab.insert(node->identifier(), symbol);
+    _parent->set_new_symbol(symbol);
+    return;
+  }
+
+  //IF already exists
+  if (node->arguments()->size() == existent_symbol->params()->size()) {
+    for (size_t i=0; i < node->arguments()->size(); i++) {
+      cdk::typed_node* newArgument = (cdk::typed_node*) node->arguments()->node(i);
+      if (newArgument->type()->name() != existent_symbol->params()->at(i)->type()->name())
+        throw std::string("declarations are not the same");
+    }
+
+    _symtab.replace(node->identifier(), symbol);
+    _parent->set_new_symbol(symbol);
+  }
+  else throw std::string("declarations are not the same");
+}
+
 void fir::type_checker::do_null_pointer_node(fir::null_pointer_node *const node, int lvl) {
   ASSERT_UNSPEC;
   node->type(cdk::reference_type::create(4,cdk::primitive_type::create(0, cdk::TYPE_VOID)));
 }
-void fir::type_checker::do_pointer_node(fir::pointer_node *const node, int lvl) {
-  // EMPTY
-}
+
 void fir::type_checker::do_size_of_node(fir::size_of_node *const node, int lvl) {
   ASSERT_UNSPEC;
   node->statement()->accept(this, lvl + 2);
   node->type(cdk::primitive_type::create(4, cdk::TYPE_INT));
 }
+
 void fir::type_checker::do_address_of_node(fir::address_of_node *const node, int lvl) {
   ASSERT_UNSPEC;
   node->lvalue()->accept(this, lvl + 2);
   node->type(cdk::reference_type::create(4, node->lvalue()->type()));
 }
+
 void fir::type_checker::do_block_node(fir::block_node *const node, int lvl) {
   if (node->declarations()) node->declarations()->accept(this, lvl + 2);
   if (node->instructions()) node->instructions()->accept(this, lvl + 2);
 }
 
-void fir::type_checker::do_write_node(fir::write_node *const node, int lvl) {
-  // EMPTY
-}
 void fir::type_checker::do_alloc_node(fir::alloc_node *const node, int lvl) {
   ASSERT_UNSPEC;
   node->argument()->accept(this, lvl + 2);

@@ -16,7 +16,7 @@ namespace fir {
     cdk::sequence_node *_arguments;
 
   public:
-    
+
     function_call_node(int lineno, const std::string &identifier, cdk::sequence_node *arguments = nullptr) :
         cdk::expression_node(lineno), _identifier(identifier), _arguments(arguments) {
     }
@@ -28,7 +28,10 @@ namespace fir {
     cdk::sequence_node* arguments() {
       return _arguments;
     }
-    
+    inline void identifier(std::string identifier) {
+      _identifier = identifier;
+    }
+
 
     void accept(basic_ast_visitor *sp, int level) {
       sp->do_function_call_node(this, level);
