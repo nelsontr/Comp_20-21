@@ -250,7 +250,11 @@ void fir::type_checker::do_restart_node(fir::restart_node *const node, int lvl) 
   // EMPTY feito
 }
 void fir::type_checker::do_declaration_variable_node(fir::declaration_variable_node *const node, int lvl) {
-  // EMPTY
+  if(node->initializer())
+    node->initializer()->accept(this, lvl+2)
+
+  //tem problemas identifiers com virgulas
+  
 }
 void fir::type_checker::do_function_call_node(fir::function_call_node *const node, int lvl) {
   // EMPTY
@@ -259,7 +263,7 @@ void fir::type_checker::do_function_declaration_node(fir::function_declaration_n
   // EMPTY
 }
 void fir::type_checker::do_function_definition_node(fir::function_definition_node *const node, int lvl) {
-  // EMPTY
+  if(node->)
 }
 void fir::type_checker::do_identify_node(fir::identify_node *const node, int lvl) {
   // EMPTY
