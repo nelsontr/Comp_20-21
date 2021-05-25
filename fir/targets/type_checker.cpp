@@ -185,10 +185,11 @@ void fir::type_checker::do_assignment_node(cdk::assignment_node *const node, int
   try {
     node->lvalue()->accept(this, lvl);
   } catch (const std::string &id) {
-    auto symbol = std::make_shared<fir::symbol>(cdk::primitive_type::create(4, cdk::TYPE_INT), id, 0);
+    /*auto symbol = std::make_shared<fir::symbol>(cdk::primitive_type::create(4, cdk::TYPE_INT), id, 0);
     _symtab.insert(id, symbol);
     _parent->set_new_symbol(symbol);  // advise parent that a symbol has been inserted
     node->lvalue()->accept(this, lvl);  //DAVID: bah!
+    */
   }
 
   if (!node->lvalue()->is_typed(cdk::TYPE_INT)) throw std::string("wrong type in left argument of assignment expression");
@@ -245,12 +246,15 @@ void fir::type_checker::do_leave_node(fir::leave_node *const node, int lvl) {
 void fir::type_checker::do_restart_node(fir::restart_node *const node, int lvl) {
   // EMPTY feito
 }
+
 void fir::type_checker::do_identify_node(fir::identify_node *const node, int lvl) {
   // EMPTY
 }
+
 void fir::type_checker::do_pointer_node(fir::pointer_node *const node, int lvl) {
   // EMPTY
 }
+
 void fir::type_checker::do_write_node(fir::write_node *const node, int lvl) {
   node->argument()->accept(this, lvl + 2);
 
@@ -304,7 +308,7 @@ void fir::type_checker::do_function_declaration_node(fir::function_declaration_n
   else if (node->identifier() == "_main")
     node->identifier("._main");
 
-  _function = symbol::make_symbol(node->type(), node->identifier(), true, node->qualifier(), node->arguments());
+  _function = std::make_shared<symbol>(node->type(), node->identifier(), true, node->qualifier());
 
   auto existent_symbol = _symtab.find(node->identifier());
 
@@ -333,7 +337,7 @@ void fir::type_checker::do_function_definition_node(fir::function_definition_nod
   else if (node->identifier() == "_main")
     node->identifier("._main");
 
-  auto symbol = symbol::make_symbol(node->type(), node->identifier(), true, node->qualifier(), node->arguments());
+  std::shared_ptr<fir::symbol> symbol = std::make_shared<fir::symbol>(node->type(), node->identifier(), true, node->qualifier());
 
   auto existent_symbol = _symtab.find(node->identifier());
 

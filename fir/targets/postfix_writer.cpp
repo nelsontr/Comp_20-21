@@ -409,6 +409,7 @@ void fir::postfix_writer::do_write_node(fir::write_node *const node, int lvl)
     _pf.TRASH(4);
   }*/
 }
+
 void fir::postfix_writer::do_alloc_node(fir::alloc_node *const node, int lvl)
 {
   ASSERT_SAFE_EXPRESSIONS;

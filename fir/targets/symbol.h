@@ -16,8 +16,8 @@ namespace fir {
     int _offset;
 
   public:
-    symbol(std::shared_ptr<cdk::basic_type> type, const std::string &name, long value, bool function, int offset, int acessType, std::vector<std::shared_ptr<symbol>> params) :
-        _type(type), _name(name), _function(function), _acessType(acessType), _params(params) {
+    symbol(std::shared_ptr<cdk::basic_type> type, const std::string &name, bool function, int acessType) :
+        _type(type), _name(name), _function(function), _acessType(acessType), _offset(0) {
     }
 
     virtual ~symbol() {
@@ -53,11 +53,6 @@ namespace fir {
     const std::string &name() const {
       return _name;
     }
-
-    inline auto make_symbol(std::shared_ptr<cdk::basic_type> type, const std::string &name, bool function, int acessType, std::vector<std::shared_ptr<symbol>> params) {
-      return std::make_shared<symbol>(type, name, function, acessType, params);
-    }
-
   };
 
 } // fir
