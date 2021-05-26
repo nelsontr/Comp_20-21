@@ -20,10 +20,7 @@ void fir::postfix_writer::do_data_node(cdk::data_node *const node, int lvl)
 }
 void fir::postfix_writer::do_double_node(cdk::double_node *const node, int lvl)
 {
-  if (_insideFunction)
-    _pf.DOUBLE(node->value()); // push an integer
-  else
-    _pf.SDOUBLE(node->value()); // store an integer
+    _pf.DOUBLE(node->value()); // push an integer 
 }
 void fir::postfix_writer::do_not_node(cdk::not_node *const node, int lvl)
 {
@@ -34,11 +31,11 @@ void fir::postfix_writer::do_not_node(cdk::not_node *const node, int lvl)
 void fir::postfix_writer::do_and_node(cdk::and_node *const node, int lvl)
 {
   ASSERT_SAFE_EXPRESSIONS;
-  int lbl;
+  int lbl = ++_lbl;
 
   node->left()->accept(this, lvl + 2);
   _pf.DUP32();
-  _pf.JZ(mklbl(lbl = ++_lbl));
+  _pf.JZ(mklbl(lbl));
 
   node->right()->accept(this, lvl + 2);
   _pf.AND();
@@ -47,11 +44,11 @@ void fir::postfix_writer::do_and_node(cdk::and_node *const node, int lvl)
 }
 void fir::postfix_writer::do_or_node(cdk::or_node *const node, int lvl)
 {
-  int lbl;
-
+  ASSERT_SAFE_EXPRESSIONS;
+  int lbl = ++_lbl;
   node->left()->accept(this, lvl + 2);
   _pf.DUP32();
-  _pf.JNZ(mklbl(lbl = ++_lbl));
+  _pf.JNZ(mklbl(lbl));
 
   node->right()->accept(this, lvl + 2);
   _pf.OR();
@@ -78,17 +75,18 @@ void fir::postfix_writer::do_integer_node(cdk::integer_node *const node, int lvl
 
 void fir::postfix_writer::do_string_node(cdk::string_node *const node, int lvl)
 {
-  int lbl1;
+  ASSERT_SAFE_EXPRESSIONS;
+  int lbl;
 
   /* generate the string */
   _pf.RODATA();                    // strings are DATA readonly
   _pf.ALIGN();                     // make sure we are aligned
-  _pf.LABEL(mklbl(lbl1 = ++_lbl)); // give the string a name
+  _pf.LABEL(mklbl(lbl = ++_lbl)); // give the string a name
   _pf.SSTRING(node->value());      // output string characters
 
   /* leave the address on the stack */
   _pf.TEXT();            // return to the TEXT segment
-  _pf.ADDR(mklbl(lbl1)); // the string to be printed
+  _pf.ADDR(mklbl(lbl)); // the string to be printed
 }
 
 //---------------------------------------------------------------------------
@@ -195,9 +193,14 @@ void fir::postfix_writer::do_eq_node(cdk::eq_node *const node, int lvl)
 void fir::postfix_writer::do_variable_node(cdk::variable_node *const node, int lvl)
 {
   ASSERT_SAFE_EXPRESSIONS;
-  // WHAT IS _symtab
-  // simplified generation: all variables are global
-  _pf.ADDR(node->name());
+
+  std::shared_ptr<fir::symbol> symbol = _symtab.find(node->name());
+  if (!symbol->offset()) {
+    _pf.ADDR(symbol->name());
+  }
+  else {
+    _pf.LOCAL(symbol->offset());
+  }
 }
 
 void fir::postfix_writer::do_rvalue_node(cdk::rvalue_node *const node, int lvl)
@@ -364,6 +367,7 @@ void fir::postfix_writer::do_function_definition_node(fir::function_definition_n
   // these are just a few library function imports
   _pf.EXTERN("readi");
   _pf.EXTERN("printi");
+  _pf.EXTERN("printd");
   _pf.EXTERN("prints");
   _pf.EXTERN("println");
 }
@@ -413,9 +417,9 @@ void fir::postfix_writer::do_block_node(fir::block_node *const node, int lvl)
 void fir::postfix_writer::do_write_node(fir::write_node *const node, int lvl)
 {
   ASSERT_SAFE_EXPRESSIONS;
-  node->argument()->accept(this, lvl);
-  for(size_t i = 0; i < node->argument()->size(); i++) {
+  for(size_t i=0; i < node->argument()->size(); i++) {
     cdk::expression_node *expression = dynamic_cast<cdk::expression_node *>(node->argument()->node(i));
+    expression->accept(this, lvl);
     if (expression->is_typed(cdk::TYPE_INT)) {
       _pf.CALL("printi");
       _pf.TRASH(4);
@@ -423,6 +427,10 @@ void fir::postfix_writer::do_write_node(fir::write_node *const node, int lvl)
     else if (expression->is_typed(cdk::TYPE_STRING)) {
       _pf.CALL("prints");
       _pf.TRASH(4);
+    }
+    else if (expression->is_typed(cdk::TYPE_DOUBLE)) {
+      _pf.CALL("printd");
+      _pf.TRASH(8);
     }
   }
   
