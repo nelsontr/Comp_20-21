@@ -15,6 +15,9 @@ namespace fir {
     cdk::symbol_table<fir::symbol> &_symtab;
     cdk::basic_postfix_emitter &_pf;
     int _lbl;
+    std::shared_ptr<fir::symbol> _function;
+    int _return_count;
+    int _offset;
 
   public:
     postfix_writer(std::shared_ptr<cdk::compiler> compiler, cdk::symbol_table<fir::symbol> &symtab,

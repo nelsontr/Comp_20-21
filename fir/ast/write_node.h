@@ -9,12 +9,12 @@ namespace fir {
    * Class for describing write nodes.
    */
   class write_node: public cdk::basic_node {
-    bool _nLine = false;
     cdk::sequence_node *_argument;
+    bool _nLine;
 
   public:
-    inline write_node(int lineno, cdk::sequence_node *argument, bool nLine = false) :
-        cdk::basic_node(lineno), _nLine(nLine), _argument(argument) {
+    inline write_node(int lineno, cdk::sequence_node *argument, bool nLine) :
+        cdk::basic_node(lineno), _argument(argument), _nLine(nLine) {
     }
 
   public:

@@ -89,7 +89,6 @@ decl               : variableDec ';'    	{ $$ = $1; }
 variableDec       : data_type '*' tIDENTIFIER                    { $$ = new fir::declaration_variable_node(LINE, 1,  $1, *$3, nullptr); }
                   | data_type '*' tIDENTIFIER '=' expr           { $$ = new fir::declaration_variable_node(LINE, 1,  $1, *$3, $5); }
                   | data_type '?' tIDENTIFIER                    { $$ = new fir::declaration_variable_node(LINE, 2, $1, *$3, nullptr); }
-                  | data_type '?' tIDENTIFIER '=' expr           { $$ = new fir::declaration_variable_node(LINE, 2, $1, *$3, $5); }
                   | data_type  tIDENTIFIER                        { $$ = new fir::declaration_variable_node(LINE, 0, $1, *$2, nullptr); }
                   | data_type  tIDENTIFIER '=' expr               { $$ = new fir::declaration_variable_node(LINE, 0, $1, *$2, $4); }
                   ;
@@ -115,18 +114,16 @@ funcDec            :     data_type  tIDENTIFIER '(' args ')'                  { 
                    | data_type '*'  tIDENTIFIER '(' args ')'                  { $$ = new fir::function_declaration_node(LINE, 1,  $1, *$3, $5); delete $3; }
                    | data_type '?'  tIDENTIFIER '(' args ')'                  { $$ = new fir::function_declaration_node(LINE, 2,  $1, *$3, $5); delete $3; }
                    /* Void */
-                   | void_type  tIDENTIFIER '(' args ')'                  { $$ = new fir::function_declaration_node(LINE, 0, *$2, $4); delete $2; }
+                   |     void_type  tIDENTIFIER '(' args ')'                  { $$ = new fir::function_declaration_node(LINE, 0, *$2, $4); delete $2; }
                    | void_type '*'  tIDENTIFIER '(' args ')'                  { $$ = new fir::function_declaration_node(LINE, 1, *$3, $5); delete $3; }
                    | void_type '?'  tIDENTIFIER '(' args ')'                  { $$ = new fir::function_declaration_node(LINE, 2, *$3, $5); delete $3; }
                    ;
 
 funcDef            :     data_type  tIDENTIFIER '(' args ')' optDefault body       { $$ = new fir::function_definition_node(LINE, 0,  $1, *$2, $4, $6, $7); delete $2; }
                    | data_type '*'  tIDENTIFIER '(' args ')' optDefault body       { $$ = new fir::function_definition_node(LINE, 1,  $1, *$3, $5, $7, $8); delete $3; }
-                   | data_type '?'  tIDENTIFIER '(' args ')' optDefault body       { $$ = new fir::function_definition_node(LINE, 2,  $1, *$3, $5, $7, $8); delete $3; }
                    /* Void */
                    |     void_type  tIDENTIFIER '(' args ')' optDefault body       { $$ = new fir::function_definition_node(LINE, 0, *$2, $4, $6, $7); delete $2; }
                    | void_type '*'  tIDENTIFIER '(' args ')' optDefault body       { $$ = new fir::function_definition_node(LINE, 1, *$3, $5, $7, $8); delete $3; }
-                   | void_type '?'  tIDENTIFIER '(' args ')' optDefault body       { $$ = new fir::function_definition_node(LINE, 2, *$3, $5, $7, $8); delete $3; }
                    ;
                    
 args               : /* empty */         	    { $$ = new cdk::sequence_node(LINE);  }

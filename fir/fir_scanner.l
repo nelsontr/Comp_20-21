@@ -124,10 +124,12 @@ SPACE        [ \t\r\n]
 <X_SPECIALCHAR>.                    { strlit << *yytext; yy_pop_state(); }
 
   /* INTEGERS */
+ 
   /*Octal*/
-"0"                           yy_push_state(X_OCTAL); 
-<X_OCTAL>[0-7]+                    { yylval.i = strtoul(yytext, NULL, 8); yy_pop_state(); return tINTEGER; }
-<X_OCTAL>[0-9]+                     std::cerr << "WARNING: line " << lineno() << ": bad Octogonal representation!" << std::endl; exit(1);
+[0]                           yy_push_state(X_OCTAL); 
+<X_OCTAL>{SPACE}*             { yylval.i = strtoul(yytext, NULL, 8); yy_pop_state(); return tINTEGER; }
+<X_OCTAL>[0-7]*               { yylval.i = strtoul(yytext, NULL, 8); yy_pop_state(); return tINTEGER; }
+<X_OCTAL>.                     std::cerr << "WARNING: line " << lineno() << ": bad Octogonal representation!" << std::endl; exit(1);
 
 [1-9][0-9]*                              yylval.i = strtol(yytext, NULL, 10); return tINTEGER;
 

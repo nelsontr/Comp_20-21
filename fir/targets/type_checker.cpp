@@ -319,7 +319,7 @@ void fir::type_checker::do_function_declaration_node(fir::function_declaration_n
   }
 
   //IF already exists
-  if (node->arguments()->size() == existent_symbol->params()->size()) {
+  /*if (node->arguments()->size() == existent_symbol->params()->size()) {
     for (size_t i=0; i < node->arguments()->size(); i++) {
       cdk::typed_node* newArgument = (cdk::typed_node*) node->arguments()->node(i);
       if (newArgument->type()->name() != existent_symbol->params()->at(i)->type()->name())
@@ -327,7 +327,7 @@ void fir::type_checker::do_function_declaration_node(fir::function_declaration_n
     }
   }
   else throw std::string("redecleared with different number of parameters");
-
+*/
   //pode ter mais
 }
 
@@ -348,7 +348,7 @@ void fir::type_checker::do_function_definition_node(fir::function_definition_nod
   }
 
   //IF already exists
-  if (node->arguments()->size() == existent_symbol->params()->size()) {
+  /*if (node->arguments()->size() == existent_symbol->params()->size()) {
     for (size_t i=0; i < node->arguments()->size(); i++) {
       cdk::typed_node* newArgument = (cdk::typed_node*) node->arguments()->node(i);
       if (newArgument->type()->name() != existent_symbol->params()->at(i)->type()->name())
@@ -358,7 +358,7 @@ void fir::type_checker::do_function_definition_node(fir::function_definition_nod
     _symtab.replace(node->identifier(), symbol);
     _parent->set_new_symbol(symbol);
   }
-  else throw std::string("declarations are not the same");
+  else throw std::string("declarations are not the same");*/
 }
 
 void fir::type_checker::do_null_pointer_node(fir::null_pointer_node *const node, int lvl) {

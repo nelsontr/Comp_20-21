@@ -47,7 +47,6 @@ void fir::postfix_writer::do_and_node(cdk::and_node *const node, int lvl)
 }
 void fir::postfix_writer::do_or_node(cdk::or_node *const node, int lvl)
 {
-  ASSERT_SAFE_EXPRESSIONS;
   int lbl;
 
   node->left()->accept(this, lvl + 2);
@@ -55,7 +54,7 @@ void fir::postfix_writer::do_or_node(cdk::or_node *const node, int lvl)
   _pf.JNZ(mklbl(lbl = ++_lbl));
 
   node->right()->accept(this, lvl + 2);
-  _pf.AND();
+  _pf.OR();
   _pf.ALIGN();
   _pf.LABEL(mklbl(lbl));
 }
@@ -74,10 +73,7 @@ void fir::postfix_writer::do_sequence_node(cdk::sequence_node *const node, int l
 
 void fir::postfix_writer::do_integer_node(cdk::integer_node *const node, int lvl)
 {
-  if (_insideFunction)
-    _pf.INT(node->value()); // push an integer
-  else
-    _pf.SINT(node->value()); // store an integer
+  _pf.INT(node->value()); // push an integer
 }
 
 void fir::postfix_writer::do_string_node(cdk::string_node *const node, int lvl)
@@ -183,7 +179,14 @@ void fir::postfix_writer::do_eq_node(cdk::eq_node *const node, int lvl)
 {
   ASSERT_SAFE_EXPRESSIONS;
   node->left()->accept(this, lvl);
+  if (node->left()->is_typed(cdk::TYPE_INT) && node->right()->is_typed(cdk::TYPE_DOUBLE)) {
+    _pf.I2D();
+  }
+
   node->right()->accept(this, lvl);
+  if (node->right()->is_typed(cdk::TYPE_INT) && node->left()->is_typed(cdk::TYPE_DOUBLE)) {
+    _pf.I2D();
+  }
   _pf.EQ();
 }
 
@@ -334,11 +337,35 @@ void fir::postfix_writer::do_function_call_node(fir::function_call_node *const n
 }
 void fir::postfix_writer::do_function_declaration_node(fir::function_declaration_node *const node, int lvl)
 {
-  // EMPTY
+  ASSERT_SAFE_EXPRESSIONS;
+  std::shared_ptr<fir::symbol> function = new_symbol();
+
+  //_symbols_to_declare.insert(function->name());
+  reset_new_symbol();
 }
 void fir::postfix_writer::do_function_definition_node(fir::function_definition_node *const node, int lvl)
 {
-  // EMPTY
+  ASSERT_SAFE_EXPRESSIONS;
+  // generate the main function (RTS mandates that its name be "_main")
+  _pf.TEXT();
+  _pf.ALIGN();
+  _pf.GLOBAL("_main", _pf.FUNC());
+  _pf.LABEL("_main");
+  _pf.ENTER(0);  // Simple doesn't implement local variables
+
+  node->body()->accept(this, lvl);
+
+  // end the main function
+  _pf.INT(0);
+  _pf.STFVAL32();
+  _pf.LEAVE();
+  _pf.RET();
+
+  // these are just a few library function imports
+  _pf.EXTERN("readi");
+  _pf.EXTERN("printi");
+  _pf.EXTERN("prints");
+  _pf.EXTERN("println");
 }
 void fir::postfix_writer::do_identify_node(fir::identify_node *const node, int lvl)
 {
@@ -376,38 +403,31 @@ void fir::postfix_writer::do_address_of_node(fir::address_of_node *const node, i
 }
 void fir::postfix_writer::do_block_node(fir::block_node *const node, int lvl)
 {
-  //_symtab.push();
+  _symtab.push();
   if (node->declarations())
     node->declarations()->accept(this, lvl + 2);
   if (node->instructions())
     node->instructions()->accept(this, lvl + 2);
-  //_symtab.pop();
+  _symtab.pop();
 }
 void fir::postfix_writer::do_write_node(fir::write_node *const node, int lvl)
 {
   ASSERT_SAFE_EXPRESSIONS;
   node->argument()->accept(this, lvl);
-
-  //VER FOR ANTERIOR
-
-  /*if (node->argument()->is_typed(cdk::TYPE_INT))
-  {
-    //_symbols_to_declare.insert("printi");
-    _pf.CALL("printi");
-    _pf.TRASH(4);
+  for(size_t i = 0; i < node->argument()->size(); i++) {
+    cdk::expression_node *expression = dynamic_cast<cdk::expression_node *>(node->argument()->node(i));
+    if (expression->is_typed(cdk::TYPE_INT)) {
+      _pf.CALL("printi");
+      _pf.TRASH(4);
+    }
+    else if (expression->is_typed(cdk::TYPE_STRING)) {
+      _pf.CALL("prints");
+      _pf.TRASH(4);
+    }
   }
-  else if (node->argument()->is_typed(cdk::TYPE_DOUBLE))
-  {
-    //_symbols_to_declare.insert("printd");
-    _pf.CALL("printd");
-    _pf.TRASH(8);
-  }
-  else if (node->argument()->is_typed(cdk::TYPE_STRING))
-  {
-    //_symbols_to_declare.insert("prints");
-    _pf.CALL("prints");
-    _pf.TRASH(4);
-  }*/
+  
+  if(node->nLine())
+    _pf.CALL("println");
 }
 
 void fir::postfix_writer::do_alloc_node(fir::alloc_node *const node, int lvl)
