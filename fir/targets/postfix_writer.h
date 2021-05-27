@@ -28,7 +28,7 @@ namespace fir {
     int _return_count;
     int _offset;
     bool _insideFunction = false;
-    bool _insideFuntionArgs = false;
+    bool _insideFunctionArgs = false;
     std::stack<int> _whileEnd;
     std::stack<int> _whileCondition;
     std::set<std::string> public_symbols;

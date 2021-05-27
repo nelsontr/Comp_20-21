@@ -6,8 +6,8 @@ FAIL=0
 PASTA_TEST=tests-fir-daily-202103091601/
 
 echo ">> make clean all..."
-make clean all | grep !""
-set -e
+#make clean all | grep !""
+#set -e
 
 function fail {
 	echo -en "\033[01;31mFAIL: ${x%.fir}.\n"

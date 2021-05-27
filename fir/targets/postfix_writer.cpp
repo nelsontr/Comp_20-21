@@ -322,6 +322,10 @@ void fir::postfix_writer::do_return_node(fir::return_node *const node, int lvl)
 
 void fir::postfix_writer::do_leave_node(fir::leave_node *const node, int lvl)
 {
+  ASSERT_SAFE_EXPRESSIONS;
+  for(int lvl = node->lvl(); lvl>1; lvl--){
+    _whileEnd.pop();
+  }
   if (_whileEnd.size()) _pf.JMP(mklbl(_whileEnd.top()));
   else throw new std::string("Cannot perform a break outside a 'for' loop.");
 }
@@ -342,6 +346,7 @@ void fir::postfix_writer::do_while_finally_node(fir::while_finally_node *const n
 
 void fir::postfix_writer::do_restart_node(fir::restart_node *const node, int lvl)
 {
+  ASSERT_SAFE_EXPRESSIONS;
   if (_whileCondition.size()) _pf.JMP(mklbl(_whileCondition.top()));
   else throw new std::string("Cannot perform a continue outside a 'for' loop.");
 }
@@ -369,7 +374,7 @@ void fir::postfix_writer::do_declaration_variable_node(fir::declaration_variable
     _offset -= size;
     offset = _offset;
   }
-  else if(_insideFuntionArgs) {
+  else if(_insideFunctionArgs) {
     offset = _offset;
     _offset += size;
   }
@@ -393,7 +398,7 @@ void fir::postfix_writer::do_declaration_variable_node(fir::declaration_variable
         _pf.STINT();
       }
     }
-    else if (!_insideFunction && !_insideFuntionArgs)
+    else if (!_insideFunction && !_insideFunctionArgs)
     {
       if(INT_DOUBLE_POINTER) {
         _pf.DATA();
@@ -430,7 +435,7 @@ void fir::postfix_writer::do_declaration_variable_node(fir::declaration_variable
     }
   }
   else {
-      if (!_insideFunction && !_insideFuntionArgs && INT_DOUBLE_POINTER_STRING)
+      if (!_insideFunction && !_insideFunctionArgs && INT_DOUBLE_POINTER_STRING)
       {
         _pf.BSS();
         _pf.ALIGN();
@@ -442,7 +447,33 @@ void fir::postfix_writer::do_declaration_variable_node(fir::declaration_variable
 
 void fir::postfix_writer::do_function_call_node(fir::function_call_node *const node, int lvl)
 {
-  // EMPTY
+  ASSERT_SAFE_EXPRESSIONS;
+
+  size_t args_size = 0;
+  std::shared_ptr<fir::symbol> symbol = _symtab.find(node->identifier());
+
+  if (node->arguments()) {
+    for (size_t i = node->arguments()->size(); i > 0; i--) {
+      cdk::expression_node *arg = dynamic_cast<cdk::expression_node*>(node->arguments()->node(i-1));
+      std::shared_ptr<fir::symbol> param = symbol->params()->at(i-1);
+
+      arg->accept(this, lvl + 2);
+      args_size += param->type()->size();
+
+      if (param->is_typed(cdk::TYPE_DOUBLE) && arg->is_typed(cdk::TYPE_INT)) _pf.I2D();
+    }
+  }
+
+  _pf.CALL(node->identifier());
+  if (args_size != 0) {
+    _pf.TRASH(args_size);
+  }
+
+  if (symbol->is_typed(cdk::TYPE_INT) || symbol->is_typed(cdk::TYPE_POINTER) || symbol->is_typed(cdk::TYPE_STRING)) {
+    _pf.LDFVAL32();
+  } else if (symbol->is_typed(cdk::TYPE_DOUBLE)) {
+    _pf.LDFVAL64();
+  }
 }
 
 void fir::postfix_writer::do_function_declaration_node(fir::function_declaration_node *const node, int lvl)
@@ -451,14 +482,14 @@ void fir::postfix_writer::do_function_declaration_node(fir::function_declaration
     throw new std::string("Cannot define function in function body or args");
 
   ASSERT_SAFE_EXPRESSIONS;
-    auto symbol = _symtab.find(node->identifier());
-    if(!symbol || !symbol->function()) {
-        std::cerr << "Function not found. Should not happen" << std::endl;
-        exit(1);
-    }
-    if(!symbol->isDefined()) {
-        public_symbol(symbol->name());
-    }
+  auto symbol = _symtab.find(node->identifier());
+  if(!symbol || !symbol->function()) {
+      std::cerr << "Function not found. Should not happen" << std::endl;
+      exit(1);
+  }
+  if(!symbol->isDefined()) {
+      public_symbol(symbol->name());
+  }
 }
 
 void fir::postfix_writer::do_function_definition_node(fir::function_definition_node *const node, int lvl)
@@ -486,10 +517,10 @@ void fir::postfix_writer::do_function_definition_node(fir::function_definition_n
     _insideFunction = false;
   }
 
-  //if (node->identifier() == '_main')
-
-  _pf.INT(0);
-  _pf.STFVAL32();
+  if (node->identifier()=="_main"){
+    _pf.INT(0);
+    _pf.STFVAL32();
+  }
   _pf.LEAVE();
   _pf.RET();
 
@@ -497,11 +528,13 @@ void fir::postfix_writer::do_function_definition_node(fir::function_definition_n
   _symtab.pop();
 
   // these are just a few library function imports
-  _pf.EXTERN("readi");
-  _pf.EXTERN("printi");
-  _pf.EXTERN("printd");
-  _pf.EXTERN("prints");
-  _pf.EXTERN("println");
+  if (node->identifier()=="_main"){
+    _pf.EXTERN("readi");
+    _pf.EXTERN("printi");
+    _pf.EXTERN("printd");
+    _pf.EXTERN("prints");
+    _pf.EXTERN("println");
+  }
 }
 
 void fir::postfix_writer::do_identify_node(fir::identify_node *const node, int lvl)
@@ -577,10 +610,10 @@ void fir::postfix_writer::do_write_node(fir::write_node *const node, int lvl)
 void fir::postfix_writer::do_alloc_node(fir::alloc_node *const node, int lvl)
 {
   ASSERT_SAFE_EXPRESSIONS;
-  //size_t typeSize = cdk::reference_type_cast(node->type())->referenced()->size();
-
+  std::shared_ptr<cdk::reference_type> type = cdk::reference_type::cast(node->type());
+  
   node->argument()->accept(this, lvl + 2);
-  //_pf.INT(typeSize);
+  _pf.INT(type->referenced()->size());
   _pf.MUL();
   _pf.ALLOC();
   _pf.SP();

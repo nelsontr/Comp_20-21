@@ -1,5 +1,5 @@
-#ifndef __FIR_TARGETS_SYMBOL_H__
-#define __FIR_TARGETS_SYMBOL_H__
+#ifndef FIR_TARGETS_SYMBOL_H
+#define FIR_TARGETS_SYMBOL_H
 
 #include <string>
 #include <memory>
@@ -11,6 +11,7 @@ namespace fir {
     std::shared_ptr<cdk::basic_type> _type;
     std::string _name;
     bool _function;
+    bool _isDefined =  false;
     int _acessType; //Public=1, Private=2, Import=0
     std::vector<std::shared_ptr<symbol>> _params; //Functions parameters
     int _offset;
@@ -35,6 +36,15 @@ namespace fir {
     bool function(bool function) {
       return _function = function;
     }
+
+    bool isDefined() const {
+      return _isDefined;
+    }
+
+    bool isDefined(bool isDefined) {
+      return _isDefined = isDefined;
+    }
+
     int acessType() const {
       return _acessType;
     }
