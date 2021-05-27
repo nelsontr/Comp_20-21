@@ -500,6 +500,16 @@ void fir::postfix_writer::do_function_definition_node(fir::function_definition_n
 
   _symtab.push();
 
+
+  if (node->arguments()) {
+    _insideFunctionArgs = true;
+    for (size_t i = 0; i < node->arguments()->size(); i++) {
+      cdk::basic_node *arg = node->arguments()->node(i);
+      arg->accept(this, 0);
+    }
+    _insideFunctionArgs = false;
+  }
+
   _pf.TEXT();
   _pf.ALIGN();
 
@@ -516,16 +526,27 @@ void fir::postfix_writer::do_function_definition_node(fir::function_definition_n
     node->body()->accept(this, lvl);
     _insideFunction = false;
   }
+  _symtab.pop();
 
   if (node->identifier()=="_main"){
     _pf.INT(0);
     _pf.STFVAL32();
   }
+
+  node->returnVal()->accept(this, lvl + 2);
+
+  if (_function->is_typed(cdk::TYPE_INT) ||
+    _function->is_typed(cdk::TYPE_STRING) ||
+    _function->is_typed(cdk::TYPE_POINTER)) {
+    _pf.STFVAL32();
+  } else if (_function->is_typed(cdk::TYPE_DOUBLE)) {
+    _pf.STFVAL64();
+  } else throw std::string("invalid type to return");
+
   _pf.LEAVE();
   _pf.RET();
 
   _function = nullptr;
-  _symtab.pop();
 
   // these are just a few library function imports
   if (node->identifier()=="_main"){
