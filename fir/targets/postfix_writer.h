@@ -3,7 +3,7 @@
 
 #include "targets/basic_ast_visitor.h"
 
-#include <stack>
+#include <vector>
 #include <sstream>
 #include <set>
 #include <cdk/emitters/basic_postfix_emitter.h>
@@ -29,8 +29,8 @@ namespace fir {
     int _offset;
     bool _insideFunction = false;
     bool _insideFunctionArgs = false;
-    std::stack<int> _whileEnd;
-    std::stack<int> _whileCondition;
+    std::vector<int> _whileEnd;
+    std::vector<int> _whileCondition;
     std::set<std::string> public_symbols;
 
   public:

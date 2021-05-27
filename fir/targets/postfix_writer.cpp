@@ -269,8 +269,8 @@ void fir::postfix_writer::do_while_node(fir::while_node *const node, int lvl)
   ASSERT_SAFE_EXPRESSIONS;
   int while_cond = ++_lbl;
   int while_end = ++_lbl;
-  _whileCondition.push(while_cond);
-  _whileEnd.push(while_end);
+  _whileCondition.push_back(while_cond);
+  _whileEnd.push_back(while_end);
 
   _pf.LABEL(mklbl(while_cond));
   node->condition()->accept(this, lvl);
@@ -279,8 +279,8 @@ void fir::postfix_writer::do_while_node(fir::while_node *const node, int lvl)
   node->block()->accept(this, lvl + 2);
   _pf.JMP(mklbl(while_cond));
   _pf.LABEL(mklbl(while_end));
-  _whileEnd.pop();
-  _whileCondition.pop();
+  _whileEnd.pop_back();
+  _whileCondition.pop_back();
 }
 
 //---------------------------------------------------------------------------
@@ -323,11 +323,9 @@ void fir::postfix_writer::do_return_node(fir::return_node *const node, int lvl)
 void fir::postfix_writer::do_leave_node(fir::leave_node *const node, int lvl)
 {
   ASSERT_SAFE_EXPRESSIONS;
-  for(int lvl = node->lvl(); lvl>1; lvl--){
-    _whileEnd.pop();
-  }
-  if (_whileEnd.size()) _pf.JMP(mklbl(_whileEnd.top()));
-  else throw new std::string("Cannot perform a break outside a 'while' loop.");
+
+  if (_whileEnd.size()) _pf.JMP(mklbl(_whileEnd.at(_whileEnd.size()-node->lvl())));
+  else throw new std::string("Cannot perform a break outside a 'for' loop.");
 }
 
 void fir::postfix_writer::do_while_finally_node(fir::while_finally_node *const node, int lvl)
@@ -347,7 +345,7 @@ void fir::postfix_writer::do_while_finally_node(fir::while_finally_node *const n
 void fir::postfix_writer::do_restart_node(fir::restart_node *const node, int lvl)
 {
   ASSERT_SAFE_EXPRESSIONS;
-  if (_whileCondition.size()) _pf.JMP(mklbl(_whileCondition.top()));
+  if (_whileCondition.size()) _pf.JMP(mklbl(_whileCondition.at(_whileCondition.size()-node->lvl())));
   else throw new std::string("Cannot perform a continue outside a 'for' loop.");
 }
 
@@ -480,8 +478,8 @@ void fir::postfix_writer::do_function_declaration_node(fir::function_declaration
 {
   if (_insideFunction)
     throw new std::string("Cannot define function in function body or args");
-
   ASSERT_SAFE_EXPRESSIONS;
+  
   auto symbol = _symtab.find(node->identifier());
   if(!symbol || !symbol->function()) {
       std::cerr << "Function not found. Should not happen" << std::endl;
@@ -549,13 +547,11 @@ void fir::postfix_writer::do_function_definition_node(fir::function_definition_n
   _function = nullptr;
 
   // these are just a few library function imports
-  if (node->identifier()=="_main"){
-    _pf.EXTERN("readi");
-    _pf.EXTERN("printi");
-    _pf.EXTERN("printd");
-    _pf.EXTERN("prints");
-    _pf.EXTERN("println");
-  }
+  _pf.EXTERN("readi");
+  _pf.EXTERN("printi");
+  _pf.EXTERN("printd");
+  _pf.EXTERN("prints");
+  _pf.EXTERN("println");
 }
 
 void fir::postfix_writer::do_identify_node(fir::identify_node *const node, int lvl)

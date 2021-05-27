@@ -94,7 +94,7 @@ variableDec       : data_type '*' tIDENTIFIER                    { $$ = new fir:
                   ;
 
 variableDecs       : variableDec ';'                               { $$ = new cdk::sequence_node(LINE, $1);     }
-                   | variableDecs ',' variableDec ';'              { $$ = new cdk::sequence_node(LINE, $3, $1); }
+                   | variableDec ';' variableDecs                  { $$ = new cdk::sequence_node(LINE, $1, $3); }
                    ;
 
 optVariableDec     : /* empty */            { $$ = nullptr; }

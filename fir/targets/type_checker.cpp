@@ -313,19 +313,12 @@ void fir::type_checker::do_declaration_variable_node(fir::declaration_variable_n
     else
       throw std::string("Unknown type for variable initializer.");
   }
-  if (!node->is_typed(cdk::TYPE_STRUCT)) {
-    const std::string &id = node->variableId();
-    std::shared_ptr<fir::symbol> symbol = std::make_shared<fir::symbol>(
-      node->type(),
-      id,
-      true,
-      node->qualifier());
+  const std::string &id = node->variableId();
+  std::shared_ptr<fir::symbol> symbol = std::make_shared<fir::symbol>(node->type(), id, true, node->qualifier());
 
-      if (_symtab.insert(id, symbol))
-        _parent->set_new_symbol(symbol);
-      else
-        throw std::string("Variable '" + id + "' has been redeclared.");
-  }
+  if (_symtab.insert(id, symbol))
+    _parent->set_new_symbol(symbol);
+  else throw std::string("Variable '" + id + "' has been redeclared.");
 }
 
 void fir::type_checker::do_function_call_node(fir::function_call_node *const node, int lvl) {
