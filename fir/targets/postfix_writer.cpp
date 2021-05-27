@@ -267,7 +267,10 @@ void fir::postfix_writer::do_read_node(fir::read_node *const node, int lvl)
 void fir::postfix_writer::do_while_node(fir::while_node *const node, int lvl)
 {
   ASSERT_SAFE_EXPRESSIONS;
-  int while_cond = ++_lbl, while_end = ++_lbl;
+  int while_cond = ++_lbl;
+  int while_end = ++_lbl;
+  _whileCondition.push(while_cond);
+  _whileEnd.push(while_end);
 
   _pf.LABEL(mklbl(while_cond));
   node->condition()->accept(this, lvl);
@@ -276,6 +279,8 @@ void fir::postfix_writer::do_while_node(fir::while_node *const node, int lvl)
   node->block()->accept(this, lvl + 2);
   _pf.JMP(mklbl(while_cond));
   _pf.LABEL(mklbl(while_end));
+  _whileEnd.pop();
+  _whileCondition.pop();
 }
 
 //---------------------------------------------------------------------------
@@ -317,10 +322,8 @@ void fir::postfix_writer::do_return_node(fir::return_node *const node, int lvl)
 
 void fir::postfix_writer::do_leave_node(fir::leave_node *const node, int lvl)
 {
-  /*if (_whileEnd.size() != 0)
-    _pf.JMP(mklbl(_whileEnd.top()));
-  else
-    throw new std::string("Cannot perform a break outside a 'for' loop.");*/
+  if (_whileEnd.size()) _pf.JMP(mklbl(_whileEnd.top()));
+  else throw new std::string("Cannot perform a break outside a 'for' loop.");
 }
 
 void fir::postfix_writer::do_while_finally_node(fir::while_finally_node *const node, int lvl)
@@ -339,11 +342,9 @@ void fir::postfix_writer::do_while_finally_node(fir::while_finally_node *const n
 
 void fir::postfix_writer::do_restart_node(fir::restart_node *const node, int lvl)
 {
-  /*if (_whileStart.size() != 0)
-    _pf.JMP(mklbl(_whileStart.top()));
-  else
-    throw new std::string("Cannot perform a continue outside a 'for' loop.");
-*/}
+  if (_whileCondition.size()) _pf.JMP(mklbl(_whileCondition.top()));
+  else throw new std::string("Cannot perform a continue outside a 'for' loop.");
+}
 
 void fir::postfix_writer::do_declaration_variable_node(fir::declaration_variable_node *const node, int lvl)
 {

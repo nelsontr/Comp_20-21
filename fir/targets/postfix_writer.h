@@ -3,6 +3,7 @@
 
 #include "targets/basic_ast_visitor.h"
 
+#include <stack>
 #include <sstream>
 #include <cdk/emitters/basic_postfix_emitter.h>
 
@@ -27,7 +28,8 @@ namespace fir {
     int _offset;
     bool _insideFunction = false;
     bool _insideFuntionArgs = false;
-  //std::stack<int> _whileEnd;
+    std::stack<int> _whileEnd;
+    std::stack<int> _whileCondition;
 
   public:
     postfix_writer(std::shared_ptr<cdk::compiler> compiler, cdk::symbol_table<fir::symbol> &symtab,
