@@ -447,26 +447,18 @@ void fir::postfix_writer::do_function_call_node(fir::function_call_node *const n
 
 void fir::postfix_writer::do_function_declaration_node(fir::function_declaration_node *const node, int lvl)
 {
-  /*if (_inFunctionBody)
+  if (_insideFunction)
     throw new std::string("Cannot define function in function body or args");
 
   ASSERT_SAFE_EXPRESSIONS;
-
-  if (!new_symbol()) return;
-
-  std::shared_ptr<og::symbol> function = new_symbol();
-
-  std::vector<std::shared_ptr<cdk::basic_type>> args;
-  if (node->arguments()) {
-    for (size_t i = 0; i < node->arguments()->size(); i++) {
-      args.push_back(dynamic_cast<fir::declaration_variable_node*>(node->arguments()->node(i))->type());
+    auto symbol = _symtab.find(node->identifier());
+    if(!symbol || !symbol->function()) {
+        std::cerr << "Function not found. Should not happen" << std::endl;
+        exit(1);
     }
-  }
-
-  function->args(args);
-
-  //_functions_undeclared.insert(function->name());
-  reset_new_symbol();*/
+    if(!symbol->isDefined()) {
+        public_symbol(symbol->name());
+    }
 }
 
 void fir::postfix_writer::do_function_definition_node(fir::function_definition_node *const node, int lvl)
