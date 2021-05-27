@@ -16,28 +16,16 @@ void fir::type_checker::do_sequence_node(cdk::sequence_node *const node, int lvl
 
 void fir::type_checker::do_logical_operation(cdk::binary_operation_node *const node, int lvl){
   ASSERT_UNSPEC;
+  
   node->left()->accept(this, lvl + 2);
+  if (!node->left()->is_typed(cdk::TYPE_INT) && !node->left()->is_typed(cdk::TYPE_DOUBLE) && !node->left()->is_typed(cdk::TYPE_POINTER)) {
+    throw  std::string("wrong type in left argument of binary expression");
+  } 
+
   node->right()->accept(this, lvl +2);
-
-  if(!node->left()->is_typed(cdk::TYPE_INT) || !node->right()->is_typed(cdk::TYPE_INT))
-    throw std::string("argument must type integer.");
-
-  if(node->left()->is_typed(cdk::TYPE_UNSPEC)){
-    fir::read_node *inputLeft = dynamic_cast<fir::read_node *>(node->left());
-    if(inputLeft != nullptr)
-      node->type(cdk::primitive_type::create(4, cdk::TYPE_INT));
-    else
-      throw std::string("Specified node not found.");
-  }
-
-  if(node->right()->is_typed(cdk::TYPE_UNSPEC)){
-    fir::read_node *inputRight = dynamic_cast<fir::read_node *>(node->right());
-    if(inputRight != nullptr)
-      node->type(cdk::primitive_type::create(4, cdk::TYPE_INT));
-    else
-      throw std::string("Specified node not found.");
-  }
-
+  if (!node->right()->is_typed(cdk::TYPE_INT) && !node->right()->is_typed(cdk::TYPE_DOUBLE) && !node->right()->is_typed(cdk::TYPE_POINTER)) {
+    throw std::string("wrong type in right argument of binary expression");}
+  
 }
 
 void fir::type_checker::do_nil_node(cdk::nil_node *const node, int lvl) {
@@ -75,10 +63,24 @@ void fir::type_checker::do_not_node(cdk::not_node *const node, int lvl) {
 
 void fir::type_checker::do_and_node(cdk::and_node *const node, int lvl) {
   do_logical_operation(node, lvl);
+
+  if (!node->left()->is_typed(cdk::TYPE_INT) || !node->right()->is_typed(cdk::TYPE_INT)) {
+    throw std::string("Invalid types in and");
+  }
+  else {
+    node->type(cdk::primitive_type::create(4, cdk::TYPE_INT));
+  }
 }
 
 void fir::type_checker::do_or_node(cdk::or_node *const node, int lvl) {
   do_logical_operation(node, lvl);
+
+  if (!node->left()->is_typed(cdk::TYPE_INT) || !node->right()->is_typed(cdk::TYPE_INT)) {
+    throw std::string("Invalid types in or");
+  }
+  else {
+    node->type(cdk::primitive_type::create(4, cdk::TYPE_INT));
+  }
 }
 
 //---------------------------------------------------------------------------
@@ -274,11 +276,57 @@ void fir::type_checker::do_while_finally_node(fir::while_finally_node *const nod
 }
 
 void fir::type_checker::do_declaration_variable_node(fir::declaration_variable_node *const node, int lvl) {
-  if(node->initializer())
-    node->initializer()->accept(this, lvl+2);
+  if (node->initializer() != nullptr) {
+    node->initializer()->accept(this, lvl + 2);
+    //std::vector<std::string> *identifiers = new std::vector<std::string>();
+    if (node->initializer()->is_typed(cdk::TYPE_UNSPEC)){
+       fir::read_node *input = dynamic_cast<fir::read_node*>(node->initializer());
+       fir::alloc_node *stack = dynamic_cast<fir::alloc_node*>(node->initializer());
+      if(input != nullptr) {
+        if(node->is_typed(cdk::TYPE_INT) || node->is_typed(cdk::TYPE_DOUBLE))
+          node->initializer()->type(node->type());
+        else
+          throw std::string("Unable to read input.");
+      }
+      else if (stack != nullptr) {
+        if (node->is_typed(cdk::TYPE_POINTER))
+          node->initializer()->type(node->type());
+      }
+      else
+        throw std::string("Unknown node with unspecified type.");
+    }
+    else if (node->is_typed(cdk::TYPE_INT)) {
+      if (!node->initializer()->is_typed(cdk::TYPE_INT))
+        throw std::string("Wrong type for initializer (integer expected).");
+    }
+    else if (node->is_typed(cdk::TYPE_DOUBLE)) {
+      if (!node->initializer()->is_typed(cdk::TYPE_DOUBLE) && !node->initializer()->is_typed(cdk::TYPE_INT))
+        throw std::string("Wrong type for initializer (integer or double expected).");
+    }
+    else if (node->is_typed(cdk::TYPE_STRING)) {
+      if (!node->initializer()->is_typed(cdk::TYPE_STRING))
+        throw std::string("Wrong type for initializer (string expected).");
+    }
+    else if (node->is_typed(cdk::TYPE_POINTER)) {
+      if (!node->initializer()->is_typed(cdk::TYPE_POINTER))
+        throw std::string("Wrong type for initializer (pointer expected).");
+    }
+    else
+      throw std::string("Unknown type for variable initializer.");
+  }
+  if (!node->is_typed(cdk::TYPE_STRUCT)) {
+    const std::string &id = node->variableId();
+    std::shared_ptr<fir::symbol> symbol = std::make_shared<fir::symbol>(
+      node->type(),
+      id,
+      true,
+      node->qualifier());
 
-  //tem problemas identifiers com virgulas
-
+      if (_symtab.insert(id, symbol))
+        _parent->set_new_symbol(symbol);
+      else
+        throw std::string("Variable '" + id + "' has been redeclared.");
+  }
 }
 
 void fir::type_checker::do_function_call_node(fir::function_call_node *const node, int lvl) {

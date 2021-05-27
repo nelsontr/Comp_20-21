@@ -39,8 +39,8 @@
 %token <d> tREAL
 %token <s> tIDENTIFIER tSTRING
 %token tIF tTHEN tWHILE tDO 
-%token tWRITELN tWRITE tINPUT tOR  tAND
-%token tRETURN tRESTART tLEAVE tSIZEOF tDEFAULT
+%token tWRITELN tWRITE tINPUT 
+%token tOR  tAND tRETURN tRESTART tLEAVE tSIZEOF tDEFAULT
 %token tVOID_TYPE tINT_TYPE tFLOAT_TYPE tSTRING_TYPE tNULLPTR
 
 %nonassoc tIF
@@ -62,7 +62,7 @@
 
 %type <node> file decl variableDec funcDec funcDef arg instruction optDefault
 %type <sequence> decls variableDecs optVariableDec args instructions optionalInstruc exprs opt_exprs body body1 body2
-%type <expression> expr integer real literal
+%type <expression> expr
 %type <s> string
 %type <lvalue> lval
 %type <type> data_type void_type
@@ -134,8 +134,10 @@ args               : /* empty */         	    { $$ = new cdk::sequence_node(LINE
 arg                : data_type tIDENTIFIER        { $$ = new fir::declaration_variable_node(LINE, 0, $1, *$2, nullptr); }
                    ;
 
-optDefault         :    /* empty */                { $$ = nullptr; }
-                   | tDEFAULT literal              { $$ = new fir::return_node(LINE); }
+optDefault         :    /* empty */                 { $$ = nullptr; }
+                   | tDEFAULT tINTEGER              { $$ = new fir::return_node(LINE); }
+                   | tDEFAULT tREAL                 { $$ = new fir::return_node(LINE); }
+                   | tDEFAULT tSTRING               { $$ = new fir::return_node(LINE); }
                    ;
 
 body               : prolg body1                                          { $$ = new cdk::sequence_node(LINE, $1); }
@@ -186,8 +188,8 @@ optionalInstruc    : /* empty */                      { $$ = new cdk::sequence_n
 
 
   /*nao se tem que fazer uma */
-expr               : integer                         { $$ = $1; }
-                   | real                             { $$ = $1; }
+expr               : tINTEGER                         { $$ = new cdk::integer_node(LINE, $1);}
+                   | tREAL                            { $$ = new cdk::double_node(LINE, $1); }
                    | string                           { $$ = new cdk::string_node(LINE, $1); }
                    | tNULLPTR                         { $$ = new fir::null_pointer_node(LINE); }
                    /* LEFT VALUES */
@@ -225,9 +227,6 @@ expr               : integer                         { $$ = $1; }
                    ;
                    
 
-  /*expr2              ;*/
-
-
 exprs              : expr                             { $$ = new cdk::sequence_node(LINE, $1);     }
                    | exprs ',' expr                   { $$ = new cdk::sequence_node(LINE, $3, $1); }
                    ;
@@ -237,15 +236,8 @@ opt_exprs          : /* empty */                      { $$ = new cdk::sequence_n
                    ;
 
 
-integer            : tINTEGER                         { $$ = new cdk::integer_node(LINE, $1); };
-real               : tREAL                            { $$ = new cdk::double_node(LINE, $1); };
 string             : tSTRING                          { $$ = $1; }
                    | string tSTRING                   { $$ = new std::string(*$1 + *$2); delete $1; delete $2; }
-                   ;
-
-literal            : integer                          { $$ = $1; }
-                   | real                             { $$ = $1; }
-                   | string                           { $$ = new cdk::string_node(LINE, $1); }
                    ;
                    
 lval               : tIDENTIFIER                                { $$ = new cdk::variable_node(LINE, *$1); delete $1; }

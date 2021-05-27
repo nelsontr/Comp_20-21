@@ -4,14 +4,14 @@ NUM=0
 SUC=0
 FAIL=0
 echo ">> make clean all..."
-make clean all | grep !""
+make all | grep !""
 set -e
 
 for x in tests-fir-daily-202103091601/*.fir; do
     NUM=$[$NUM+1]
     DIFF=${x/tests-fir-daily-202103091601\//tests-fir-daily-202103091601\/out\/}    
 
-    printf "\033[01;36m%s \t-- " ${x/tests-fir-daily-202103091601\//}
+    printf "\033[01;36m%s \t|| " ${x/tests-fir-daily-202103091601\//}
     
     (./fir $x | grep !"") || :
     if [ -s ${x%.fir}.asm ]; then
@@ -28,8 +28,7 @@ for x in tests-fir-daily-202103091601/*.fir; do
 				FAIL=$[$FAIL+1];
 		    else
 				echo -en "\033[01;32mSUCCESS" "\n"
-			    rm -f ${x%.fir}.diff
-			    rm -f ${x%.fir}
+			    rm -f ${x%.fir} ${x%.fir}.diff ${x%.fir}.out ${x%.fir}.o ${x%.fir}.asm
 				SUC=$[$SUC+1];
 		    fi
 		else
