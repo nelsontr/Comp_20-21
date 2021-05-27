@@ -6,6 +6,13 @@
 #include <sstream>
 #include <cdk/emitters/basic_postfix_emitter.h>
 
+#define INT_POINTER ( node->is_typed(cdk::TYPE_INT) || node->is_typed(cdk::TYPE_POINTER) )
+#define INT_DOUBLE_STRING ( node->is_typed(cdk::TYPE_INT) || node->is_typed(cdk::TYPE_DOUBLE) || node->is_typed(cdk::TYPE_STRING) )
+#define INT_DOUBLE_POINTER ( node->is_typed(cdk::TYPE_INT) || node->is_typed(cdk::TYPE_DOUBLE) || node->is_typed(cdk::TYPE_POINTER) )
+#define INT_STRING_POINTER ( node->is_typed(cdk::TYPE_INT) || node->is_typed(cdk::TYPE_STRING) || node->is_typed(cdk::TYPE_POINTER) )
+#define INT_DOUBLE_POINTER_STRING ( node->is_typed(cdk::TYPE_INT) || node->is_typed(cdk::TYPE_DOUBLE) || node->is_typed(cdk::TYPE_POINTER)  || node->is_typed(cdk::TYPE_STRING) )
+
+
 namespace fir {
 
   //!
@@ -18,6 +25,9 @@ namespace fir {
     std::shared_ptr<fir::symbol> _function;
     int _return_count;
     int _offset;
+    bool _insideFunction = false;
+    bool _insideFuntionArgs = false;
+  //std::stack<int> _whileEnd;
 
   public:
     postfix_writer(std::shared_ptr<cdk::compiler> compiler, cdk::symbol_table<fir::symbol> &symtab,
