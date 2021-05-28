@@ -15,6 +15,25 @@ void fir::postfix_writer::do_data_node(cdk::data_node *const node, int lvl)
   // EMPTY
 }
 
+//---------------------------------------------------------------------------
+
+void fir::postfix_writer::do_sequence_node(cdk::sequence_node *const node, int lvl)
+{
+  for (size_t i = 0; i < node->size(); i++)
+  {
+    node->node(i)->accept(this, lvl);
+  }
+}
+
+//---------------------------------------------------------------------------
+
+void fir::postfix_writer::do_integer_node(cdk::integer_node *const node, int lvl)
+{
+  ASSERT_SAFE_EXPRESSIONS;
+  if (_insideFunction) _pf.INT(node->value());
+  else _pf.SINT(node->value());
+}
+
 void fir::postfix_writer::do_double_node(cdk::double_node *const node, int lvl)
 {
   ASSERT_SAFE_EXPRESSIONS;
@@ -22,12 +41,47 @@ void fir::postfix_writer::do_double_node(cdk::double_node *const node, int lvl)
   else _pf.SDOUBLE(node->value());
 }
 
-void fir::postfix_writer::do_not_node(cdk::not_node *const node, int lvl)
+void fir::postfix_writer::do_string_node(cdk::string_node *const node, int lvl)
 {
   ASSERT_SAFE_EXPRESSIONS;
-  node->argument()->accept(this, lvl);
-  _pf.NOT();
+  int lbl;
+
+  /* generate the string */
+  _pf.RODATA();                    // strings are DATA readonly
+  _pf.ALIGN();                     // make sure we are aligned
+  _pf.LABEL(mklbl(lbl = ++_lbl)); // give the string a name
+  _pf.SSTRING(node->value());      // output string characters
+
+  if (_insideFunction) {
+    _pf.TEXT();
+    _pf.ADDR(mklbl(lbl));
+  }
+  else {
+    _pf.DATA(); // return to the DATA segment
+    _pf.SADDR(mklbl(lbl)); // the string to be printed
+  }
 }
+
+void fir::postfix_writer::do_null_pointer_node(fir::null_pointer_node *const node, int lvl)
+{
+  ASSERT_SAFE_EXPRESSIONS;
+
+  if (_insideFunction) _pf.INT(0);
+  else _pf.SINT(0);
+}
+
+void fir::postfix_writer::do_pointer_node(fir::pointer_node *const node, int lvl)
+{
+  ASSERT_SAFE_EXPRESSIONS;
+
+  node->base()->accept(this, lvl);
+  node->index()->accept(this, lvl);
+  _pf.INT(node->type()->size());
+  _pf.MUL();
+  _pf.ADD();
+}
+
+//---------------------------------------------------------------------------
 
 void fir::postfix_writer::do_and_node(cdk::and_node *const node, int lvl)
 {
@@ -59,48 +113,6 @@ void fir::postfix_writer::do_or_node(cdk::or_node *const node, int lvl)
   _pf.LABEL(mklbl(lbl));
 }
 
-//---------------------------------------------------------------------------
-
-void fir::postfix_writer::do_sequence_node(cdk::sequence_node *const node, int lvl)
-{
-  for (size_t i = 0; i < node->size(); i++)
-  {
-    node->node(i)->accept(this, lvl);
-  }
-}
-
-//---------------------------------------------------------------------------
-
-void fir::postfix_writer::do_integer_node(cdk::integer_node *const node, int lvl)
-{
-  ASSERT_SAFE_EXPRESSIONS;
-  if (_insideFunction) _pf.INT(node->value());
-  else _pf.SINT(node->value());
-}
-
-void fir::postfix_writer::do_string_node(cdk::string_node *const node, int lvl)
-{
-  ASSERT_SAFE_EXPRESSIONS;
-  int lbl;
-
-  /* generate the string */
-  _pf.RODATA();                    // strings are DATA readonly
-  _pf.ALIGN();                     // make sure we are aligned
-  _pf.LABEL(mklbl(lbl = ++_lbl)); // give the string a name
-  _pf.SSTRING(node->value());      // output string characters
-
-  if (_insideFunction) {
-    _pf.TEXT();
-    _pf.ADDR(mklbl(lbl));
-  }
-  else {
-    _pf.DATA(); // return to the DATA segment
-    _pf.SADDR(mklbl(lbl)); // the string to be printed
-  }
-}
-
-//---------------------------------------------------------------------------
-
 void fir::postfix_writer::do_neg_node(cdk::neg_node *const node, int lvl)
 {
   ASSERT_SAFE_EXPRESSIONS;
@@ -108,6 +120,13 @@ void fir::postfix_writer::do_neg_node(cdk::neg_node *const node, int lvl)
 
   if (node->type()->name() == cdk::TYPE_DOUBLE) _pf.DNEG();
   else _pf.NEG();
+}
+
+void fir::postfix_writer::do_not_node(cdk::not_node *const node, int lvl)
+{
+  ASSERT_SAFE_EXPRESSIONS;
+  node->argument()->accept(this, lvl);
+  _pf.NOT();
 }
 
 //---------------------------------------------------------------------------
@@ -264,27 +283,6 @@ void fir::postfix_writer::do_read_node(fir::read_node *const node, int lvl)
 
 //---------------------------------------------------------------------------
 
-void fir::postfix_writer::do_while_node(fir::while_node *const node, int lvl)
-{
-  ASSERT_SAFE_EXPRESSIONS;
-  int while_cond = ++_lbl;
-  int while_end = ++_lbl;
-  _whileCondition.push_back(while_cond);
-  _whileEnd.push_back(while_end);
-
-  _pf.LABEL(mklbl(while_cond));
-  node->condition()->accept(this, lvl);
-  _pf.JZ(mklbl(while_end));
-
-  node->block()->accept(this, lvl + 2);
-  _pf.JMP(mklbl(while_cond));
-  _pf.LABEL(mklbl(while_end));
-  _whileEnd.pop_back();
-  _whileCondition.pop_back();
-}
-
-//---------------------------------------------------------------------------
-
 void fir::postfix_writer::do_if_node(fir::if_node *const node, int lvl)
 {
   ASSERT_SAFE_EXPRESSIONS;
@@ -296,8 +294,6 @@ void fir::postfix_writer::do_if_node(fir::if_node *const node, int lvl)
   node->block()->accept(this, lvl + 2);
   _pf.LABEL(mklbl(lbl1));
 }
-
-//---------------------------------------------------------------------------
 
 void fir::postfix_writer::do_if_else_node(fir::if_else_node *const node, int lvl)
 {
@@ -315,6 +311,44 @@ void fir::postfix_writer::do_if_else_node(fir::if_else_node *const node, int lvl
   _pf.LABEL(mklbl(lbl1 = lbl2));
 }
 
+void fir::postfix_writer::do_while_node(fir::while_node *const node, int lvl)
+{
+  ASSERT_SAFE_EXPRESSIONS;
+  int while_cond = ++_lbl, while_end = ++_lbl;
+  _whileCondition.push_back(while_cond);
+  _whileEnd.push_back(while_end);
+
+  _pf.LABEL(mklbl(while_cond));
+  node->condition()->accept(this, lvl);
+  _pf.JZ(mklbl(while_end));
+
+  node->block()->accept(this, lvl + 2);
+  _pf.JMP(mklbl(while_cond));
+  _pf.LABEL(mklbl(while_end));
+  _whileEnd.pop_back();
+  _whileCondition.pop_back();
+}
+
+void fir::postfix_writer::do_while_finally_node(fir::while_finally_node *const node, int lvl)
+{
+  ASSERT_SAFE_EXPRESSIONS;
+  int while_cond = ++_lbl, end_label = ++_lbl;
+  _whileCondition.push_back(while_cond);
+  _whileEnd.push_back(end_label);
+
+  _pf.LABEL(mklbl(while_cond));
+  node->condition()->accept(this, lvl);
+  _pf.JZ(mklbl(end_label));
+
+  node->block()->accept(this, lvl + 2);
+  _pf.JMP(mklbl(while_cond));
+  _pf.LABEL(mklbl(end_label));
+  _whileEnd.pop_back();
+  _whileCondition.pop_back();
+}
+
+//---------------------------------------------------------------------------
+
 void fir::postfix_writer::do_return_node(fir::return_node *const node, int lvl)
 {
   // EMPTY
@@ -328,26 +362,14 @@ void fir::postfix_writer::do_leave_node(fir::leave_node *const node, int lvl)
   else throw new std::string("Cannot perform a break outside a 'for' loop.");
 }
 
-void fir::postfix_writer::do_while_finally_node(fir::while_finally_node *const node, int lvl)
-{
-  ASSERT_SAFE_EXPRESSIONS;
-  int while_cond = ++_lbl, end_label = ++_lbl;
-
-  _pf.LABEL(mklbl(while_cond));
-  node->condition()->accept(this, lvl);
-  _pf.JZ(mklbl(end_label));
-
-  node->block()->accept(this, lvl + 2);
-  _pf.JMP(mklbl(while_cond));
-  _pf.LABEL(mklbl(end_label));
-}
-
 void fir::postfix_writer::do_restart_node(fir::restart_node *const node, int lvl)
 {
   ASSERT_SAFE_EXPRESSIONS;
   if (_whileCondition.size()) _pf.JMP(mklbl(_whileCondition.at(_whileCondition.size()-node->lvl())));
   else throw new std::string("Cannot perform a continue outside a 'for' loop.");
 }
+
+//---------------------------------------------------------------------------
 
 void fir::postfix_writer::do_declaration_variable_node(fir::declaration_variable_node *const node, int lvl)
 {
@@ -542,42 +564,7 @@ void fir::postfix_writer::do_function_definition_node(fir::function_definition_n
   _pf.EXTERN("println");
 }
 
-void fir::postfix_writer::do_identify_node(fir::identify_node *const node, int lvl)
-{
-  ASSERT_SAFE_EXPRESSIONS;
-  node->argument()->accept(this, lvl);
-}
-
-void fir::postfix_writer::do_null_pointer_node(fir::null_pointer_node *const node, int lvl)
-{
-  ASSERT_SAFE_EXPRESSIONS;
-
-  if (_insideFunction) _pf.INT(0);
-  else _pf.SINT(0);
-}
-
-void fir::postfix_writer::do_pointer_node(fir::pointer_node *const node, int lvl)
-{
-  ASSERT_SAFE_EXPRESSIONS;
-
-  node->base()->accept(this, lvl);
-  node->index()->accept(this, lvl);
-  _pf.INT(node->type()->size());
-  _pf.MUL();
-  _pf.ADD();
-}
-
-void fir::postfix_writer::do_size_of_node(fir::size_of_node *const node, int lvl)
-{
-  ASSERT_SAFE_EXPRESSIONS;
-  _pf.INT(node->statement()->type()->size());
-}
-
-void fir::postfix_writer::do_address_of_node(fir::address_of_node *const node, int lvl)
-{
-  ASSERT_SAFE_EXPRESSIONS;
-  node->lvalue()->accept(this, lvl + 2);
-}
+//---------------------------------------------------------------------------
 
 void fir::postfix_writer::do_block_node(fir::block_node *const node, int lvl)
 {
@@ -610,6 +597,26 @@ void fir::postfix_writer::do_write_node(fir::write_node *const node, int lvl)
   
   if(node->nLine())
     _pf.CALL("println");
+}
+
+void fir::postfix_writer::do_identify_node(fir::identify_node *const node, int lvl)
+{
+  ASSERT_SAFE_EXPRESSIONS;
+  node->argument()->accept(this, lvl);
+}
+
+void fir::postfix_writer::do_size_of_node(fir::size_of_node *const node, int lvl)
+{
+  ASSERT_SAFE_EXPRESSIONS;
+  _pf.INT(node->statement()->type()->size());
+}
+
+//---------------------------------------------------------------------------
+
+void fir::postfix_writer::do_address_of_node(fir::address_of_node *const node, int lvl)
+{
+  ASSERT_SAFE_EXPRESSIONS;
+  node->lvalue()->accept(this, lvl + 2);
 }
 
 void fir::postfix_writer::do_alloc_node(fir::alloc_node *const node, int lvl)

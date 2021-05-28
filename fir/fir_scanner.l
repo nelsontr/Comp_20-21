@@ -21,7 +21,7 @@ LETTER       [A-Za-z_]
 IDENTIFIER   {LETTER}({LETTER}|[[:digit:]])*
 SPACE        [ \t\r\n]
 
-%x X_STRING X_COMMENT X_SPECIALCHAR X_OCTAL
+%x X_STRING X_COMMENT X_SPECIALCHAR
 %%
 
                                     {yydebug=0;}
@@ -113,70 +113,54 @@ SPACE        [ \t\r\n]
 <X_SPECIALCHAR>t                    { strlit << '\t'; yy_pop_state(); }
 <X_SPECIALCHAR>\'                   { strlit << "~'"; yy_pop_state(); }
 <X_SPECIALCHAR>\~                   { strlit << "~~"; yy_pop_state(); }
-<X_SPECIALCHAR>[[:xdigit:]]{1,2}    {
-                                    strlit << (char)(unsigned char)std::stoul(yytext, NULL, 16);
-                                    yy_pop_state();
+<X_SPECIALCHAR>[[:xdigit:]]{1,2}    { strlit << (char)(unsigned char)std::stoul(yytext, NULL, 16);
+                                      yy_pop_state();
                                     }
-<X_SPECIALCHAR>0[[:alnum:]]*        {
-                                    strlit << '\0';
-                                    yy_pop_state();
-                                    }
+<X_SPECIALCHAR>0[[:alnum:]]*        { strlit << '\0'; yy_pop_state(); }
 <X_SPECIALCHAR>.                    { strlit << *yytext; yy_pop_state(); }
 
   /* INTEGERS */
 [1-9][0-9]*                              yylval.i = strtol(yytext, NULL, 10); return tINTEGER;
  
   /*Octal*/
-[0-7]{1,3}                    { yylval.i = strtoul(yytext, NULL, 8);
-                               return tINTEGER;}
-
+[0-7]{1,3}                               yylval.i = strtoul(yytext, NULL, 8); return tINTEGER;
 
   /* FLOATS */
-
-
-
-"."[0-9]+ {try {yylval.d = std::stod(yytext, NULL);
-                double d = std::stod(yytext, NULL);
-                if(int(d) == d){
-                  yylval.i = int(d);
-                  return tINTEGER;
-                }
-                return tREAL;
-                } catch (std::out_of_range& e) {yyerror("Real out of range.");}
-          }
-
-[0-9]+"." { try { yylval.d = std::stod(yytext, NULL);
-                double d = std::stod(yytext, NULL);
-                if(int(d) == d){
-                  yylval.i = int(d);
-                  return tINTEGER;
-                }
-                return tREAL;
-                } catch (std::out_of_range& e) {yyerror("Real out of range."); }
-            }
-
-[0-9]+"."[0-9]+ {try{yylval.d = std::stod(yytext, NULL);
-                  double d = std::stod(yytext, NULL);
-                  if(int(d) == d){
-                    yylval.i = int(d);
-                    return tINTEGER;
-                  }
-                  return tREAL;
-                  }catch (std::out_of_range& e) { yyerror("Real out range."); }
-                }
-
-[0-9]+("."[0-9]+)?[Ee][-+]?[0-9]+  {try { yylval.d = std::stod(yytext, NULL);
+"."[0-9]+                             { try {
                                           double d = std::stod(yytext, NULL);
                                           if(int(d) == d){
-                                            yylval.i = int(d);
-                                            return tINTEGER;
+                                            yylval.i = int(d); return tINTEGER;
                                           }
-                                          return tREAL;
-                                          } catch(std::out_of_range& e) {yyerror("Real out of range.");}
-                                    }
+                                          yylval.d = d; return tREAL;
+                                        } catch (std::out_of_range& e) { yyerror("Real out of range.");}
+                                      }
 
+[0-9]+"."                             { try { 
+                                          double d = std::stod(yytext, NULL);
+                                          if(int(d) == d){
+                                            yylval.i = int(d); return tINTEGER;
+                                          }
+                                          yylval.d = d; return tREAL;
+                                        } catch (std::out_of_range& e) { yyerror("Real out of range."); }
+                                      }
 
+[0-9]+"."[0-9]+                       { try{
+                                          double d = std::stod(yytext, NULL);
+                                          if(int(d) == d){
+                                            yylval.i = int(d); return tINTEGER;
+                                          }
+                                          yylval.d = d; return tREAL;
+                                        } catch (std::out_of_range& e) { yyerror("Real out range."); }
+                                      }
 
+[0-9]+("."[0-9]+)?[Ee][-+]?[0-9]+     { try { 
+                                          double d = std::stod(yytext, NULL);
+                                          if(int(d) == d){
+                                            yylval.i = int(d); return tINTEGER;
+                                          }
+                                          yylval.d = d; return tREAL;
+                                        } catch(std::out_of_range& e) { yyerror("Real out of range.");}
+                                      }
 
 
   /* OTHERS */

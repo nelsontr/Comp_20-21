@@ -24,11 +24,13 @@ namespace fir {
     cdk::symbol_table<fir::symbol> &_symtab;
     cdk::basic_postfix_emitter &_pf;
     int _lbl;
-    std::shared_ptr<fir::symbol> _function;
-    int _return_count;
+    
     int _offset;
+    int _return_count;
     bool _insideFunction = false;
     bool _insideFunctionArgs = false;
+    std::shared_ptr<fir::symbol> _function;
+    
     std::vector<int> _whileEnd;
     std::vector<int> _whileCondition;
     std::set<std::string> public_symbols;

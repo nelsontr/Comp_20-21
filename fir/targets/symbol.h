@@ -11,12 +11,13 @@ namespace fir {
     std::shared_ptr<cdk::basic_type> _type;
     std::string _name;
     bool _function;
+    int _acessType; //Public=1, Private=2, Import=0
+    int _offset;
+
     size_t _argument_size;
     bool _isDefined =  false;
-    int _acessType; //Public=1, Private=2, Import=0
     std::vector<std::shared_ptr<symbol>> _params; //Functions parameters
     std::vector<std::shared_ptr<cdk::basic_type>> _argument_types;
-    int _offset;
 
   public:
     symbol(std::shared_ptr<cdk::basic_type> type, const std::string &name, bool function, int acessType) :
@@ -50,29 +51,26 @@ namespace fir {
     int acessType() const {
       return _acessType;
     }
+
     int acessType(int acessType) {
       return _acessType = acessType;
     }
+    
     std::vector<std::shared_ptr<symbol>> *params(){
       return &_params;
     }
+    
     std::shared_ptr<cdk::basic_type> type() const {
       return _type;
     }
+    
     bool is_typed(cdk::typename_type name) const {
       return _type->name() == name;
     }
+    
     const std::string &name() const {
       return _name;
     }
-
-    /*size_t argument_size() const{
-      return _argument_size;
-    }
-
-    size_t argument_size(int argument_size){
-      return _argument_size = argument_size;
-    } */   
 
     void set_argument_types(const std::vector<std::shared_ptr<cdk::basic_type>> &types) {
       _argument_types = types;
@@ -92,11 +90,7 @@ namespace fir {
     size_t number_of_arguments() const {
       return _argument_types.size();
     }
-    
-
-
   };
-
 } // fir
 
 #endif
