@@ -3,7 +3,7 @@
 NUM=0
 SUC=0
 FAIL=0
-PASTA_TEST=tests-fir-daily-202103091601/
+PASTA_TEST=tests/
 
 echo ">> make clean all..."
 make clean all | grep !""
