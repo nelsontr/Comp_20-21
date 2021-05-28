@@ -60,9 +60,9 @@
 %nonassoc tUNARY
 %nonassoc '(' ')' '[' ']'
 
-%type <node> file decl variableDec funcDec funcDef arg instruction optDefault
+%type <node> file decl variableDec funcDec funcDef arg instruction
 %type <sequence> decls variableDecs optVariableDec args instructions optionalInstruc exprs opt_exprs body body1 body2
-%type <expression> expr
+%type <expression> expr optDefault
 %type <s> string
 %type <lvalue> lval
 %type <type> data_type void_type
@@ -135,9 +135,9 @@ arg                : data_type tIDENTIFIER        { $$ = new fir::declaration_va
                    ;
 
 optDefault         :    /* empty */                 { $$ = nullptr; }
-                   | tDEFAULT tINTEGER              { $$ = new fir::return_node(LINE); }
-                   | tDEFAULT tREAL                 { $$ = new fir::return_node(LINE); }
-                   | tDEFAULT tSTRING               { $$ = new fir::return_node(LINE); }
+                   | tDEFAULT tINTEGER              { $$ = new cdk::integer_node(LINE, $2); }
+                   | tDEFAULT tREAL                 { $$ = new cdk::double_node(LINE, $2); }
+                   | tDEFAULT string                { $$ = new cdk::string_node(LINE, $2); }
                    ;
 
 body               : prolg body1                                          { $$ = new cdk::sequence_node(LINE, $1); }

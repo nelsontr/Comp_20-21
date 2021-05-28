@@ -6,7 +6,7 @@ FAIL=0
 PASTA_TEST=tests-fir-daily-202103091601/
 
 echo ">> make clean all..."
-#make clean all | grep !""
+make clean all | grep !""
 #set -e
 
 function fail {
@@ -28,8 +28,8 @@ for x in $PASTA_TEST*.fir; do
     
     (./fir $x | grep !"") || :
     if [ -s ${x%.fir}.asm ]; then
-	    yasm -felf32 ${x%.fir}.asm -o ${x%.fir}.o
-		ld -melf_i386 -o ${x%.fir} ${x%.fir}.o -lrts -L ~/compiladores/root/usr/lib/
+	    yasm -felf32 ${x%.fir}.asm -o ${x%.fir}.o | grep !""
+		ld -melf_i386 -o ${x%.fir} ${x%.fir}.o -lrts -L ~/compiladores/root/usr/lib/ | grep !""
     else
     	echo "ERROR"
     fi

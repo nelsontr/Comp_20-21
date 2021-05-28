@@ -13,18 +13,18 @@ namespace fir {
     int _qualifier;
     std::string _identifier;
     cdk::sequence_node *_arguments;
-    cdk::basic_node *_returnVal;
+    cdk::expression_node *_returnVal;
     cdk::sequence_node *_body;
 
   public:
     function_definition_node(int lineno, int qualifier, const std::string &identifier, cdk::sequence_node *arguments,
-                             cdk::basic_node *return_val, cdk::sequence_node *body) :
+                             cdk::expression_node *return_val, cdk::sequence_node *body) :
         cdk::typed_node(lineno), _qualifier(qualifier), _identifier(identifier), _arguments(arguments), _returnVal(return_val), _body(body) {
       type(cdk::primitive_type::create(0, cdk::TYPE_VOID));
     }
 
     function_definition_node(int lineno, int qualifier, std::shared_ptr<cdk::basic_type> funType, const std::string &identifier,
-                             cdk::sequence_node *arguments, cdk::basic_node *return_val, cdk::sequence_node *body) :
+                             cdk::sequence_node *arguments, cdk::expression_node *return_val, cdk::sequence_node *body) :
         cdk::typed_node(lineno), _qualifier(qualifier), _identifier(identifier), _arguments(arguments), _returnVal(return_val), _body(body) {
       type(funType);
     }
@@ -41,19 +41,19 @@ namespace fir {
       _identifier = identifier;
     }
 
-    cdk::sequence_node* arguments() {
+    inline cdk::sequence_node* arguments() {
       return _arguments;
     }
 
-    cdk::typed_node* argument(size_t ax) {
+    inline cdk::typed_node* argument(size_t ax) {
       return dynamic_cast<cdk::typed_node*>(_arguments->node(ax));
     }
 
-    cdk::basic_node* returnVal() {
+    inline cdk::expression_node* returnVal() {
       return _returnVal;
     }
 
-    cdk::sequence_node* body() {
+    inline cdk::sequence_node* body() {
       return _body;
     }
 

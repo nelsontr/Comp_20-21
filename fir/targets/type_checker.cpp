@@ -184,14 +184,15 @@ void fir::type_checker::do_rvalue_node(cdk::rvalue_node *const node, int lvl) {
 void fir::type_checker::do_assignment_node(cdk::assignment_node *const node, int lvl) {
   ASSERT_UNSPEC;
 
+  try {
   node->lvalue()->accept(this, lvl);
-  /*try {
   } catch (const std::string &id) {
-    auto symbol = std::make_shared<fir::symbol>(cdk::primitive_type::create(4, cdk::TYPE_INT), id, 0);
+    /*auto symbol = std::make_shared<fir::symbol>(cdk::primitive_type::create(4, cdk::TYPE_INT), id, 0);
     _symtab.insert(id, symbol);
     _parent->set_new_symbol(symbol);  // advise parent that a symbol has been inserted
     node->lvalue()->accept(this, lvl);  //DAVID: bah!
-  }*/
+    */
+  }
 
   if (!node->lvalue()->is_typed(cdk::TYPE_INT)) throw std::string("wrong type in left argument of assignment expression");
 
@@ -346,10 +347,8 @@ void fir::type_checker::do_function_call_node(fir::function_call_node *const nod
 }
 
 void fir::type_checker::do_function_declaration_node(fir::function_declaration_node *const node, int lvl) {
-  if (node->identifier() == "fir")
-    node->identifier("_main");
-  else if (node->identifier() == "_main")
-    node->identifier("._main");
+  if (node->identifier() == "fir") node->identifier("_main");
+  else if (node->identifier() == "_main") node->identifier("._main");
 
   _function = std::make_shared<symbol>(node->type(), node->identifier(), true, node->qualifier());
 
@@ -362,7 +361,7 @@ void fir::type_checker::do_function_declaration_node(fir::function_declaration_n
   }
 
   //IF already exists
-  /*if (node->arguments()->size() == existent_symbol->params()->size()) {
+  if (node->arguments()->size() == existent_symbol->params()->size()) {
     for (size_t i=0; i < node->arguments()->size(); i++) {
       cdk::typed_node* newArgument = (cdk::typed_node*) node->arguments()->node(i);
       if (newArgument->type()->name() != existent_symbol->params()->at(i)->type()->name())
@@ -370,8 +369,6 @@ void fir::type_checker::do_function_declaration_node(fir::function_declaration_n
     }
   }
   else throw std::string("redecleared with different number of parameters");
-*/
-  //pode ter mais
 }
 
 void fir::type_checker::do_function_definition_node(fir::function_definition_node *const node, int lvl) {
