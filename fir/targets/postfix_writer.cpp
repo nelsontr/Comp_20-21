@@ -327,7 +327,7 @@ void fir::postfix_writer::do_leave_node(fir::leave_node *const node, int lvl)
     _whileEnd.pop();
   }
   if (_whileEnd.size()) _pf.JMP(mklbl(_whileEnd.top()));
-  else throw new std::string("Cannot perform a break outside a 'for' loop.");
+  else throw new std::string("Cannot perform a break outside a 'while' loop.");
 }
 
 void fir::postfix_writer::do_while_finally_node(fir::while_finally_node *const node, int lvl)
@@ -445,34 +445,34 @@ void fir::postfix_writer::do_declaration_variable_node(fir::declaration_variable
   }
 }
 
-void fir::postfix_writer::do_function_call_node(fir::function_call_node *const node, int lvl)
-{
+
+void fir::postfix_writer::do_function_call_node(fir::function_call_node *const node, int lvl) {
   ASSERT_SAFE_EXPRESSIONS;
 
-  size_t args_size = 0;
-  std::shared_ptr<fir::symbol> symbol = _symtab.find(node->identifier());
+  auto symbol = _symtab.find(node->identifier());
 
-  if (node->arguments()) {
-    for (size_t i = node->arguments()->size(); i > 0; i--) {
-      cdk::expression_node *arg = dynamic_cast<cdk::expression_node*>(node->arguments()->node(i-1));
-      std::shared_ptr<fir::symbol> param = symbol->params()->at(i-1);
-
+  size_t argsSize = 0;
+  if (node->arguments()->size() > 0) {
+    for (int ax = node->arguments()->size() - 1; ax >= 0; ax--) {
+      cdk::expression_node *arg = dynamic_cast<cdk::expression_node*>(node->arguments()->node(ax));
       arg->accept(this, lvl + 2);
-      args_size += param->type()->size();
-
-      if (param->is_typed(cdk::TYPE_DOUBLE) && arg->is_typed(cdk::TYPE_INT)) _pf.I2D();
+      if (symbol->argument_is_typed(ax, cdk::TYPE_DOUBLE) && arg->is_typed(cdk::TYPE_INT)) {
+        _pf.I2D();
+      }
+      argsSize += symbol->argument_size(ax);
     }
   }
-
   _pf.CALL(node->identifier());
-  if (args_size != 0) {
-    _pf.TRASH(args_size);
+  if (argsSize != 0) {
+    _pf.TRASH(argsSize);
   }
 
   if (symbol->is_typed(cdk::TYPE_INT) || symbol->is_typed(cdk::TYPE_POINTER) || symbol->is_typed(cdk::TYPE_STRING)) {
     _pf.LDFVAL32();
   } else if (symbol->is_typed(cdk::TYPE_DOUBLE)) {
     _pf.LDFVAL64();
+  } else {
+    // cannot happer!
   }
 }
 

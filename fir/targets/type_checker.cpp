@@ -330,23 +330,26 @@ void fir::type_checker::do_declaration_variable_node(fir::declaration_variable_n
 
 void fir::type_checker::do_function_call_node(fir::function_call_node *const node, int lvl) {
   ASSERT_UNSPEC;
-  if (node->identifier() == "fir")
-    node->identifier("_main");
-  else if (node->identifier() == "_main")
-    node->identifier("._main");
 
-  auto function = _symtab.find(node->identifier());
+  const std::string &id = node->identifier();
+  auto symbol = _symtab.find(id);
+  if (symbol == nullptr) throw std::string("symbol '" + id + "' is undeclared.");
+  if (!symbol->function()) throw std::string("symbol '" + id + "' is not a function.");
 
-  if (!function) throw std::string("undeclared function '" + node->identifier() + "'");
-  if (!function->function()) throw std::string(node->identifier() + "is not a function");
-  if (!function->type()) throw std::string("could not infer function return type");
+  node->type(symbol->type());
 
-  node->type(function->type());
-  if (node->arguments() && node->arguments()->size() != 0)
+  if (node->arguments()->size() == symbol->number_of_arguments()) {
     node->arguments()->accept(this, lvl + 4);
-  else if (node->arguments()->size() != function->params()->size())
-    throw std::string("Function has different args size.");
-  //pode ter mais
+    for (size_t ax = 0; ax < node->arguments()->size(); ax++) {
+      if (node->argument(ax)->type() == symbol->argument_type(ax)) continue;
+      if (symbol->argument_is_typed(ax, cdk::TYPE_DOUBLE) && node->argument(ax)->is_typed(cdk::TYPE_INT)) continue;
+      throw std::string("type mismatch for argument " + std::to_string(ax + 1) + " of '" + id + "'.");
+    }
+  } else {
+    throw std::string(
+        "number of arguments in call (" + std::to_string(node->arguments()->size()) + ") must match declaration ("
+            + std::to_string(symbol->number_of_arguments()) + ").");
+  }
 }
 
 void fir::type_checker::do_function_declaration_node(fir::function_declaration_node *const node, int lvl) {
