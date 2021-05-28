@@ -318,6 +318,8 @@ void fir::type_checker::do_function_definition_node(fir::function_definition_nod
     return;
   }
 
+  if (node->returnVal()) node->returnVal()->accept(this, lvl);
+
   //IF already exists
   if (node->arguments()->size() == existent_symbol->params()->size()) {
     for (size_t i=0; i < node->arguments()->size(); i++) {

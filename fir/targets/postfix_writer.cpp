@@ -544,17 +544,14 @@ void fir::postfix_writer::do_function_definition_node(fir::function_definition_n
   if (node->body()) {
     _insideFunction = true;
     node->body()->accept(this, lvl);
-    _insideFunction = false;
   }
 
-  //node->returnVal()->value();
-  _pf.INT(0);
+  if (node->returnVal()) node->returnVal()->accept(this, lvl);
+  else _pf.INT(0);
+
   _pf.STFVAL32();
   _pf.LEAVE();
   _pf.RET();
-
-  _function = nullptr;
-  _symtab.pop();
 
   // these are just a few library function imports
   _pf.EXTERN("readi");
@@ -562,6 +559,7 @@ void fir::postfix_writer::do_function_definition_node(fir::function_definition_n
   _pf.EXTERN("printd");
   _pf.EXTERN("prints");
   _pf.EXTERN("println");
+  _insideFunction = false;
 }
 
 //---------------------------------------------------------------------------

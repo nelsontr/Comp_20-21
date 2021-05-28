@@ -29,7 +29,7 @@ for x in $PASTA_TEST*.fir; do
     (./fir $x | grep !"") || :
     if [ -s ${x%.fir}.asm ]; then
 	    yasm -felf32 ${x%.fir}.asm -o ${x%.fir}.o | grep !""
-		ld -melf_i386 -o ${x%.fir} ${x%.fir}.o -lrts -L ~/compiladores/root/usr/lib/ | grep !""
+			ld -melf_i386 -o ${x%.fir} ${x%.fir}.o -lrts -L ~/compiladores/root/usr/lib/ | grep !""
     else
     	echo "ERROR"
     fi
