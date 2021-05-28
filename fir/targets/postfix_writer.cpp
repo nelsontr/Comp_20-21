@@ -20,9 +20,7 @@ void fir::postfix_writer::do_data_node(cdk::data_node *const node, int lvl)
 void fir::postfix_writer::do_sequence_node(cdk::sequence_node *const node, int lvl)
 {
   for (size_t i = 0; i < node->size(); i++)
-  {
     node->node(i)->accept(this, lvl);
-  }
 }
 
 //---------------------------------------------------------------------------
@@ -30,6 +28,7 @@ void fir::postfix_writer::do_sequence_node(cdk::sequence_node *const node, int l
 void fir::postfix_writer::do_integer_node(cdk::integer_node *const node, int lvl)
 {
   ASSERT_SAFE_EXPRESSIONS;
+
   if (_insideFunction) _pf.INT(node->value());
   else _pf.SINT(node->value());
 }
@@ -37,6 +36,7 @@ void fir::postfix_writer::do_integer_node(cdk::integer_node *const node, int lvl
 void fir::postfix_writer::do_double_node(cdk::double_node *const node, int lvl)
 {
   ASSERT_SAFE_EXPRESSIONS;
+
   if (_insideFunction) _pf.DOUBLE(node->value());
   else _pf.SDOUBLE(node->value());
 }
@@ -55,8 +55,7 @@ void fir::postfix_writer::do_string_node(cdk::string_node *const node, int lvl)
   if (_insideFunction) {
     _pf.TEXT();
     _pf.ADDR(mklbl(lbl));
-  }
-  else {
+  } else {
     _pf.DATA(); // return to the DATA segment
     _pf.SADDR(mklbl(lbl)); // the string to be printed
   }
@@ -116,8 +115,8 @@ void fir::postfix_writer::do_or_node(cdk::or_node *const node, int lvl)
 void fir::postfix_writer::do_neg_node(cdk::neg_node *const node, int lvl)
 {
   ASSERT_SAFE_EXPRESSIONS;
-  node->argument()->accept(this, lvl);
 
+  node->argument()->accept(this, lvl);
   if (node->type()->name() == cdk::TYPE_DOUBLE) _pf.DNEG();
   else _pf.NEG();
 }
@@ -125,6 +124,7 @@ void fir::postfix_writer::do_neg_node(cdk::neg_node *const node, int lvl)
 void fir::postfix_writer::do_not_node(cdk::not_node *const node, int lvl)
 {
   ASSERT_SAFE_EXPRESSIONS;
+
   node->argument()->accept(this, lvl);
   _pf.NOT();
 }
@@ -201,9 +201,11 @@ void fir::postfix_writer::do_ne_node(cdk::ne_node *const node, int lvl)
   node->right()->accept(this, lvl);
   _pf.NE();
 }
+
 void fir::postfix_writer::do_eq_node(cdk::eq_node *const node, int lvl)
 {
   ASSERT_SAFE_EXPRESSIONS;
+
   node->left()->accept(this, lvl);
   node->right()->accept(this, lvl);
 
@@ -223,8 +225,8 @@ void fir::postfix_writer::do_eq_node(cdk::eq_node *const node, int lvl)
 void fir::postfix_writer::do_variable_node(cdk::variable_node *const node, int lvl)
 {
   ASSERT_SAFE_EXPRESSIONS;
-  std::shared_ptr<fir::symbol> symbol = _symtab.find(node->name());
   
+  std::shared_ptr<fir::symbol> symbol = _symtab.find(node->name());
   if (!symbol->offset()) _pf.ADDR(symbol->name());
   else _pf.LOCAL(symbol->offset());
 }
@@ -232,8 +234,8 @@ void fir::postfix_writer::do_variable_node(cdk::variable_node *const node, int l
 void fir::postfix_writer::do_rvalue_node(cdk::rvalue_node *const node, int lvl)
 {
   ASSERT_SAFE_EXPRESSIONS;
-  node->lvalue()->accept(this, lvl);
 
+  node->lvalue()->accept(this, lvl);
   if (INT_STRING_POINTER) _pf.LDINT();
   else if (node->lvalue()->is_typed(cdk::TYPE_DOUBLE)) _pf.LDDOUBLE();
 }
@@ -343,6 +345,8 @@ void fir::postfix_writer::do_while_finally_node(fir::while_finally_node *const n
   node->block()->accept(this, lvl + 2);
   _pf.JMP(mklbl(while_cond));
   _pf.LABEL(mklbl(end_label));
+  
+  node->finally_block()->accept(this, lvl + 2);
   _whileEnd.pop_back();
   _whileCondition.pop_back();
 }
@@ -365,6 +369,7 @@ void fir::postfix_writer::do_leave_node(fir::leave_node *const node, int lvl)
 void fir::postfix_writer::do_restart_node(fir::restart_node *const node, int lvl)
 {
   ASSERT_SAFE_EXPRESSIONS;
+
   if (_whileCondition.size()) _pf.JMP(mklbl(_whileCondition.at(_whileCondition.size()-node->lvl())));
   else throw new std::string("Cannot perform a continue outside a 'for' loop.");
 }
@@ -482,6 +487,7 @@ void fir::postfix_writer::do_function_call_node(fir::function_call_node *const n
       argsSize += symbol->argument_size(ax);
     }
   }
+  
   _pf.CALL(node->identifier());
   if (argsSize != 0) {
     _pf.TRASH(argsSize);
@@ -489,17 +495,13 @@ void fir::postfix_writer::do_function_call_node(fir::function_call_node *const n
 
   if (symbol->is_typed(cdk::TYPE_INT) || symbol->is_typed(cdk::TYPE_POINTER) || symbol->is_typed(cdk::TYPE_STRING)) {
     _pf.LDFVAL32();
-  } else if (symbol->is_typed(cdk::TYPE_DOUBLE)) {
-    _pf.LDFVAL64();
-  } else {
-    // cannot happer!
   }
+  else if (symbol->is_typed(cdk::TYPE_DOUBLE)) _pf.LDFVAL64();
 }
 
 void fir::postfix_writer::do_function_declaration_node(fir::function_declaration_node *const node, int lvl)
 {
-  if (_insideFunction)
-    throw new std::string("Cannot define function in function body or args");
+  if (_insideFunction) throw new std::string("Cannot define function in function body or args");
   ASSERT_SAFE_EXPRESSIONS;
   
   auto symbol = _symtab.find(node->identifier());
@@ -507,9 +509,8 @@ void fir::postfix_writer::do_function_declaration_node(fir::function_declaration
       std::cerr << "Function not found. Should not happen" << std::endl;
       exit(1);
   }
-  if(!symbol->isDefined()) {
-      public_symbol(symbol->name());
-  }
+
+  if(!symbol->isDefined()) public_symbol(symbol->name());
 }
 
 void fir::postfix_writer::do_function_definition_node(fir::function_definition_node *const node, int lvl)
@@ -519,7 +520,6 @@ void fir::postfix_writer::do_function_definition_node(fir::function_definition_n
   if (!_function) throw std::string("Symbol not found");
 
   _symtab.push();
-
 
   if (node->arguments()) {
     _insideFunctionArgs = true;
@@ -553,7 +553,9 @@ void fir::postfix_writer::do_function_definition_node(fir::function_definition_n
   _pf.LEAVE();
   _pf.RET();
 
-  // these are just a few library function imports
+  _symtab.pop();
+  _function = nullptr;
+
   _pf.EXTERN("readi");
   _pf.EXTERN("printi");
   _pf.EXTERN("printd");

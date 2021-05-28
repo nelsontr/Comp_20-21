@@ -22,6 +22,8 @@ void fir::type_checker::do_data_node(cdk::data_node *const node, int lvl) {
   // EMPTY
 }
 
+//---------------------------------------------------------------------------
+
 void fir::type_checker::do_and_node(cdk::and_node *const node, int lvl) {
   processBinaryExpression(node, lvl);
 }
@@ -77,17 +79,10 @@ void fir::type_checker::do_pointer_node(fir::pointer_node *const node, int lvl) 
 
 //---------------------------------------------------------------------------
 
-void fir::type_checker::processUnaryExpression(cdk::unary_operation_node *const node, int lvl) {
+void fir::type_checker::do_neg_node(cdk::neg_node *const node, int lvl) {
   node->argument()->accept(this, lvl + 2);
   if (!node->argument()->is_typed(cdk::TYPE_INT)) throw std::string("wrong type in argument of unary expression");
-
-  // in Simple, expressions are always int
-  if (!node->argument()->is_typed(cdk::TYPE_INT)) throw std::string("Invalid types in and");
   else node->type(cdk::primitive_type::create(4, cdk::TYPE_INT));
-}
-
-void fir::type_checker::do_neg_node(cdk::neg_node *const node, int lvl) {
-  processUnaryExpression(node, lvl);
 }
 
 //---------------------------------------------------------------------------
@@ -164,10 +159,12 @@ void fir::type_checker::do_assignment_node(cdk::assignment_node *const node, int
   ASSERT_UNSPEC;
 
   node->lvalue()->accept(this, lvl);
-  if (!node->lvalue()->is_typed(cdk::TYPE_INT)) throw std::string("wrong type in left argument of assignment expression");
+  if (!node->lvalue()->is_typed(cdk::TYPE_INT)) 
+    throw std::string("wrong type in left argument of assignment expression");
 
   node->rvalue()->accept(this, lvl + 2);
-  if (!node->rvalue()->is_typed(cdk::TYPE_INT)) throw std::string("wrong type in right argument of assignment expression");
+  if (!node->rvalue()->is_typed(cdk::TYPE_INT)) 
+    throw std::string("wrong type in right argument of assignment expression");
 
   if (!node->lvalue()->is_typed(cdk::TYPE_INT) || !node->rvalue()->is_typed(cdk::TYPE_INT))
     throw std::string("Invalid types in and");
@@ -211,22 +208,19 @@ void fir::type_checker::do_if_else_node(fir::if_else_node *const node, int lvl) 
 void fir::type_checker::do_declaration_variable_node(fir::declaration_variable_node *const node, int lvl) {
   if (node->initializer() != nullptr) {
     node->initializer()->accept(this, lvl + 2);
-    //std::vector<std::string> *identifiers = new std::vector<std::string>();
     if (node->initializer()->is_typed(cdk::TYPE_UNSPEC)){
        fir::read_node *input = dynamic_cast<fir::read_node*>(node->initializer());
        fir::alloc_node *stack = dynamic_cast<fir::alloc_node*>(node->initializer());
       if(input != nullptr) {
         if(node->is_typed(cdk::TYPE_INT) || node->is_typed(cdk::TYPE_DOUBLE))
           node->initializer()->type(node->type());
-        else
-          throw std::string("Unable to read input.");
+        else throw std::string("Unable to read input.");
       }
       else if (stack != nullptr) {
         if (node->is_typed(cdk::TYPE_POINTER))
           node->initializer()->type(node->type());
       }
-      else
-        throw std::string("Unknown node with unspecified type.");
+      else throw std::string("Unknown node with unspecified type.");
     }
     else if (node->is_typed(cdk::TYPE_INT)) {
       if (!node->initializer()->is_typed(cdk::TYPE_INT))
@@ -244,14 +238,12 @@ void fir::type_checker::do_declaration_variable_node(fir::declaration_variable_n
       if (!node->initializer()->is_typed(cdk::TYPE_POINTER))
         throw std::string("Wrong type for initializer (pointer expected).");
     }
-    else
-      throw std::string("Unknown type for variable initializer.");
+    else throw std::string("Unknown type for variable initializer.");
   }
   const std::string &id = node->variableId();
   std::shared_ptr<fir::symbol> symbol = std::make_shared<fir::symbol>(node->type(), id, true, node->qualifier());
 
-  if (_symtab.insert(id, symbol))
-    _parent->set_new_symbol(symbol);
+  if (_symtab.insert(id, symbol)) _parent->set_new_symbol(symbol);
   else throw std::string("Variable '" + id + "' has been redeclared.");
 }
 
@@ -327,7 +319,6 @@ void fir::type_checker::do_function_definition_node(fir::function_definition_nod
       if (newArgument->type()->name() != existent_symbol->params()->at(i)->type()->name())
         throw std::string("declarations are not the same");
     }
-
     _symtab.replace(node->identifier(), symbol);
     _parent->set_new_symbol(symbol);
   }
@@ -346,8 +337,7 @@ void fir::type_checker::do_write_node(fir::write_node *const node, int lvl) {
 
   for (size_t i = 0; i < node->argument()->size(); i++) {
     auto type = dynamic_cast<cdk::expression_node*>(node->argument()->node(i))->type();
-    if (type->name() == cdk::TYPE_POINTER)
-      throw std::string("cannot print a pointer!");
+    if (type->name() == cdk::TYPE_POINTER) throw std::string("cannot print a pointer!");
   }
 }
 
@@ -363,13 +353,15 @@ void fir::type_checker::do_size_of_node(fir::size_of_node *const node, int lvl) 
 }
 
 void fir::type_checker::do_return_node(fir::return_node *const node, int lvl) {
-  // EMPTY feito
+  // EMPTY
 }
+
 void fir::type_checker::do_leave_node(fir::leave_node *const node, int lvl) {
-  // EMPTY feito
+  // EMPTY
 }
+
 void fir::type_checker::do_restart_node(fir::restart_node *const node, int lvl) {
-  // EMPTY feito
+  // EMPTY
 }
 
 void fir::type_checker::do_identify_node(fir::identify_node *const node, int lvl) {
