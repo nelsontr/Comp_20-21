@@ -4,6 +4,27 @@
 #include "targets/postfix_writer.h"
 #include "ast/all.h" // all.h is automatically generated
 
+void fir::postfix_writer::do_map_node(fir::map_node *const node, int lvl)
+{
+  ASSERT_SAFE_EXPRESSIONS;
+
+  node->lower()->accept(this, lvl);
+  node->higher()->accept(this, lvl);
+
+  auto symbol = _symtab.find(node->function());
+  if (!symbol) throw std::string("Function not found");
+
+  _pf.CALL(node->function());
+  _pf.TRASH(4); // ONE ARGUMENT
+
+  if (symbol->is_typed(cdk::TYPE_DOUBLE))
+    _pf.LDFVAL64();
+  else if (symbol->is_typed(cdk::TYPE_INT) || symbol->is_typed(cdk::TYPE_POINTER) || symbol->is_typed(cdk::TYPE_STRING))
+    _pf.LDFVAL32();
+  else throw std::string("No correct type");
+}
+
+
 //---------------------------------------------------------------------------
 
 void fir::postfix_writer::do_nil_node(cdk::nil_node *const node, int lvl)

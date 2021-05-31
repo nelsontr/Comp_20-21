@@ -75,6 +75,9 @@ SPACE        [ \t\r\n]
 "while"                             return tWHILE;
 "do"                                return tDO;
 "finally"                           return tFINALLY;
+"map"                               return tMAP;
+".."                                return tSCALE;
+      /* "->" exists and its called tDEFAULT */
 
   /* CONDITIONS */
 
@@ -121,7 +124,7 @@ SPACE        [ \t\r\n]
 
   /* INTEGERS */
 [1-9][0-9]*                              yylval.i = strtol(yytext, NULL, 10); return tINTEGER;
- 
+
   /*Octal*/
 [0-7]{1,3}                               yylval.i = strtoul(yytext, NULL, 8); return tINTEGER;
 
@@ -135,7 +138,7 @@ SPACE        [ \t\r\n]
                                         } catch (std::out_of_range& e) { yyerror("Real out of range.");}
                                       }
 
-[0-9]+"."                             { try { 
+[0-9]+"."                             { try {
                                           double d = std::stod(yytext, NULL);
                                           if(int(d) == d){
                                             yylval.i = int(d); return tINTEGER;
@@ -153,7 +156,7 @@ SPACE        [ \t\r\n]
                                         } catch (std::out_of_range& e) { yyerror("Real out range."); }
                                       }
 
-[0-9]+("."[0-9]+)?[Ee][-+]?[0-9]+     { try { 
+[0-9]+("."[0-9]+)?[Ee][-+]?[0-9]+     { try {
                                           double d = std::stod(yytext, NULL);
                                           if(int(d) == d){
                                             yylval.i = int(d); return tINTEGER;

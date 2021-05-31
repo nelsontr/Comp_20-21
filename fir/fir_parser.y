@@ -38,10 +38,11 @@
 %token <i> tINTEGER
 %token <d> tREAL
 %token <s> tIDENTIFIER tSTRING
-%token tIF tTHEN tWHILE tDO 
-%token tWRITELN tWRITE tINPUT 
+%token tIF tTHEN tWHILE tDO
+%token tWRITELN tWRITE tINPUT
 %token tOR  tAND tRETURN tRESTART tLEAVE tSIZEOF tDEFAULT
 %token tVOID_TYPE tINT_TYPE tFLOAT_TYPE tSTRING_TYPE tNULLPTR
+%token tMAP tSCALE
 
 %nonassoc tIF
 %nonassoc tTHEN
@@ -60,12 +61,12 @@
 %nonassoc tUNARY
 %nonassoc '(' ')' '[' ']'
 
-%type <node> file decl variableDec funcDec funcDef arg instruction
+%type <node> file decl variableDec funcDec funcDef arg instruction map
 %type <sequence> decls variableDecs optVariableDec args instructions optionalInstruc exprs opt_exprs body body1 body2
 %type <expression> expr optDefault
 %type <s> string
 %type <lvalue> lval
-%type <type> data_type void_type
+%type <type> data_type void_type ptr
 %type <block> block epil prolg
 
 
@@ -123,7 +124,7 @@ funcDef            :     data_type  tIDENTIFIER '(' args ')' optDefault body    
                    |     void_type  tIDENTIFIER '(' args ')' optDefault body       { $$ = new fir::function_definition_node(LINE, 0, *$2, $4, $6, $7); delete $2; }
                    | void_type '*'  tIDENTIFIER '(' args ')' optDefault body       { $$ = new fir::function_definition_node(LINE, 1, *$3, $5, $7, $8); delete $3; }
                    ;
-                   
+
 args               : /* empty */         	                     { $$ = new cdk::sequence_node(LINE);  }
                    | arg                                       { $$ = new cdk::sequence_node(LINE, $1);     }
                    | args ',' arg                              { $$ = new cdk::sequence_node(LINE, $3, $1); }
@@ -157,7 +158,7 @@ prolg              : '@' block                                 { $$ = $2; }
 epil               : '>' '>' block                             { $$ = $3; }
                    ;
 
-block             : '{' optVariableDec optionalInstruc '}'                    { $$ = new fir::block_node(LINE, $2, $3); }             
+block             : '{' optVariableDec optionalInstruc '}'                    { $$ = new fir::block_node(LINE, $2, $3); }
                   ;
 
 instruction        : tIF expr tTHEN instruction                               { $$ = new fir::if_node(LINE, $2, $4); }
@@ -173,6 +174,13 @@ instruction        : tIF expr tTHEN instruction                               { 
                    | tRESTART ';'                                             { $$ = new fir::restart_node(LINE); }
                    | tRETURN                                                  { $$ = new fir::return_node(LINE); }
                    | block                                                    { $$ = $1; }
+                   | map ';'                        { $$ = $1; }
+                   ;
+
+ptr                : '<' data_type '>'                         { $$ = cdk::reference_type::create(4, $2); }
+                   ;
+
+map                : tMAP ptr ':' expr tSCALE expr tDEFAULT tIDENTIFIER  { $$ = new fir::map_node(LINE, $2, $4, $6, *$8); }
                    ;
 
 instructions       : instruction                      { $$ = new cdk::sequence_node(LINE, $1);     }
@@ -222,7 +230,7 @@ expr               : tINTEGER                         { $$ = new cdk::integer_no
                    | '[' expr ']'                     { $$ = new fir::alloc_node(LINE, $2); }
                    | lval '?'                         { $$ = new fir::address_of_node(LINE, $1);}
                    ;
-                   
+
 
 exprs              : expr                             { $$ = new cdk::sequence_node(LINE, $1);     }
                    | exprs ',' expr                   { $$ = new cdk::sequence_node(LINE, $3, $1); }
@@ -236,7 +244,7 @@ opt_exprs          : /* empty */                      { $$ = new cdk::sequence_n
 string             : tSTRING                          { $$ = $1; }
                    | string tSTRING                   { $$ = new std::string(*$1 + *$2); delete $1; delete $2; }
                    ;
-                   
+
 lval               : tIDENTIFIER                                  { $$ = new cdk::variable_node(LINE, *$1); delete $1; }
                    | lval '[' expr ']'                            { $$ = new fir::pointer_node(LINE, new cdk::rvalue_node(LINE, $1), $3); }
                    | '(' expr ')' '[' expr ']'                    { $$ = new fir::pointer_node(LINE, $2, $5); }

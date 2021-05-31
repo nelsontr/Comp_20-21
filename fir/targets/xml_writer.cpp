@@ -14,6 +14,12 @@ static std::string newLine(bool nLine) {
     return nLine ? "Yes": "No";
 }
 
+void fir::xml_writer::do_map_node(fir::map_node *const node, int lvl)
+{
+
+}
+
+
 //---------------------------------------------------------------------------
 
 void fir::xml_writer::do_nil_node(cdk::nil_node * const node, int lvl) {
@@ -384,7 +390,7 @@ void fir::xml_writer::do_block_node(fir::block_node *const node, int lvl) {
         closeTag("instructions", lvl);
     }
     if (node->type()) {
-        os() << std::string(lvl, ' ') << "<" << node->label()<<"_type" << ">" 
+        os() << std::string(lvl, ' ') << "<" << node->label()<<"_type" << ">"
             << qualifier_name(node->type()) << "</" << node->label()<<"_type" << ">" << std::endl;
     }
     closeTag(node, lvl);
@@ -396,7 +402,7 @@ void fir::xml_writer::do_write_node(fir::write_node *const node, int lvl) {
     //ASSERT_SAFE;
     openTag(node, lvl);
     if (node->nLine()) {
-        os() << std::string(lvl, ' ') << "<" << node->label()<<"_nLine" << ">" 
+        os() << std::string(lvl, ' ') << "<" << node->label()<<"_nLine" << ">"
             << newLine(node->nLine()) << "</" << node->label()<<"_nLine" << ">" << std::endl;
     }
     if (node->argument()) node->argument()->accept(this, lvl + 2);

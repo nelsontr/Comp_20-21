@@ -9,6 +9,29 @@
       return;                                                         \
   }
 
+void fir::type_checker::do_map_node(fir::map_node *const node, int lvl)
+{
+  //ASSERT_UNSPEC;      //NO NEED
+
+  //ACCEPT lower
+  node->lower()->accept(this, lvl);
+  if (!node->lower()->is_typed(cdk::TYPE_INT) || !node->lower()->is_typed(cdk::TYPE_DOUBLE))
+    throw std::string("Expected integer or double for lower variable.");
+  //ACCEPT higher
+  node->higher()->accept(this, lvl);
+  if (!node->higher()->is_typed(cdk::TYPE_INT) || !node->higher()->is_typed(cdk::TYPE_DOUBLE))
+    throw std::string("Expected integer or double for higher variable.");
+
+  //Check if function exists
+  const std::string &id = node->function();
+  auto symbol = _symtab.find(id);
+  if (symbol == nullptr)
+    throw std::string("function '" + id + "' is undeclared.");
+  if (!symbol->function())
+    throw std::string("symbol '" + id + "' is not a function.");
+}
+
+
 //---------------------------------------------------------------------------
 
 void fir::type_checker::do_sequence_node(cdk::sequence_node *const node, int lvl)
