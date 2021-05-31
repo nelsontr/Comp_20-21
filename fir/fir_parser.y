@@ -42,6 +42,8 @@
 %token tWRITELN tWRITE tINPUT 
 %token tOR  tAND tRETURN tRESTART tLEAVE tSIZEOF tDEFAULT
 %token tVOID_TYPE tINT_TYPE tFLOAT_TYPE tSTRING_TYPE tNULLPTR
+%token tGIVEN tAPPLY tTO tTIMES
+
 
 %nonassoc tIF
 %nonassoc tTHEN
@@ -60,7 +62,7 @@
 %nonassoc tUNARY
 %nonassoc '(' ')' '[' ']'
 
-%type <node> file decl variableDec funcDec funcDef arg instruction
+%type <node> file decl variableDec funcDec funcDef arg instruction given
 %type <sequence> decls variableDecs optVariableDec args instructions optionalInstruc exprs opt_exprs body body1 body2
 %type <expression> expr optDefault
 %type <s> string
@@ -164,6 +166,7 @@ instruction        : tIF expr tTHEN instruction                               { 
                    | tIF expr tTHEN instruction tELSE instruction             { $$ = new fir::if_else_node(LINE, $2, $4, $6); }
                    | tWHILE expr tDO instruction %prec tFINALLYX              { $$ = new fir::while_node(LINE, $2, $4); }
                    | tWHILE expr tDO instruction tFINALLY instruction         { $$ = new fir::while_finally_node(LINE, $2, $4, $6); }
+                   | given                                                     {$$ = $1; }  
                    | expr ';'                                                 { $$ = new fir::evaluation_node(LINE, $1); }
                    | tWRITE   exprs ';'                                       { $$ = new fir::write_node(LINE, $2, false); }
                    | tWRITELN exprs ';'                                       { $$ = new fir::write_node(LINE, $2, true); }
@@ -173,6 +176,9 @@ instruction        : tIF expr tTHEN instruction                               { 
                    | tRESTART ';'                                             { $$ = new fir::restart_node(LINE); }
                    | tRETURN                                                  { $$ = new fir::return_node(LINE); }
                    | block                                                    { $$ = $1; }
+                   ;
+
+given              : tGIVEN expr tAPPLY tIDENTIFIER tTO tIDENTIFIER tTIMES tINTEGER {$$ = new fir::given_apply_node(LINE, $2, *$4, *$6, $8); }  
                    ;
 
 instructions       : instruction                      { $$ = new cdk::sequence_node(LINE, $1);     }

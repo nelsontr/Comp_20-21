@@ -1,0 +1,35 @@
+== CONTEXTO ==
+
+Este enunciado expande a linguagem FIR. As alterações são realizadas sobre a
+versão de 2021/05/28 17:00. O teste realiza-se estritamente de forma individual
+(violações conduzem a reprovação imediata).
+
+Se aquela versão do projecto não contiver algum aspecto necessário para a
+resolução do teste prático, toda a implementação deve ser realizada no contexto
+do teste, como se da execução do projecto se tratasse. A não existência de
+alguns aspectos não é limitação intrínseca à implementação deste teste.
+
+== NOVA INSTRUÇÃO A ADICIONAR AO COMPILADOR ==
+
+A instrução seguinte aplica condicionalmente uma função a cada elemento de um
+vector. A função a aplicar deve ter um único argumento do mesmo tipo dos
+elementos do vector. Além da função e do ponteiro para o início do vector, a
+instrução aceita ainda o número de elementos a processar (começando sempre no
+início). A instrução apenas é executada se a condição de guarda (argumento de
+"given") for verdadeira.
+
+    given <condition> apply <function-name> to <vector-base> times <count> 
+
+Os elementos entre < e > denotam partes variáveis da instrução.
+
+Altere o compilador para que suporte esta instrução (especificações Flex e
+Bison, criação de nós, processamento semântico e geração de código).
+
+== EXEMPLO ==
+
+void cube(int element) { writeln element * element * element; }
+
+void f(<int> vector, int size) {
+ given size >= 5 apply cube to vector times 5;
+}
+

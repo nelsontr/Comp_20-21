@@ -34,6 +34,8 @@ namespace fir
 
     std::vector<int> _whileEnd;
     std::vector<int> _whileCondition;
+    std::vector<int> _givenEnd;
+    std::vector<int> _givenCondition;
     std::set<std::string> public_symbols;
 
   public:

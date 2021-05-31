@@ -76,6 +76,11 @@ SPACE        [ \t\r\n]
 "do"                                return tDO;
 "finally"                           return tFINALLY;
 
+"given"                             return tGIVEN;
+"apply"                             return tAPPLY;
+"to"                                return tTO;
+"times"                             return tTIMES;
+
   /* CONDITIONS */
 
 "if"                                return tIF;

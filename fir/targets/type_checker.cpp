@@ -238,6 +238,27 @@ void fir::type_checker::do_while_finally_node(fir::while_finally_node *const nod
     throw std::string("Expected integer condition.");
 }
 
+void fir::type_checker::do_given_apply_node(fir::given_apply_node *const node, int lvl){
+  node->condition()->accept(this, lvl + 4);
+  if (!node->condition()->is_typed(cdk::TYPE_INT))
+    throw std::string("Expected integer condition.");
+
+  const std::string &id = node->identifier();
+  auto symbol = _symtab.find(id);
+  if (symbol == nullptr)
+    throw std::string("symbol '" + id + "' is undeclared.");
+  if (!symbol->function())
+    throw std::string("symbol '" + id + "' is not a function.");
+  
+  const std::string &id_ptr = node->pointer();
+  auto symbol_ptr = _symtab.find(id_ptr);
+  if (symbol == nullptr)
+    throw std::string("symbol '" + id + "' is undeclared.");
+  if (symbol->function())
+    throw std::string("symbol '" + id + "' is a function.");
+  
+}
+
 //---------------------------------------------------------------------------
 
 void fir::type_checker::do_if_node(fir::if_node *const node, int lvl)

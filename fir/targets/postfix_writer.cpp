@@ -373,6 +373,19 @@ void fir::postfix_writer::do_while_finally_node(fir::while_finally_node *const n
   _whileCondition.pop_back();
 }
 
+void fir::postfix_writer::do_given_apply_node(fir::given_apply_node *const node, int lvl){
+  ASSERT_SAFE_EXPRESSIONS;
+  int given_cond = ++_lbl, end_label = ++_lbl;
+  _givenCondition.push_back(given_cond);
+  _givenEnd.push_back(end_label);
+
+  std::shared_ptr<fir::symbol> symbol = _symtab.find(node->identifier());
+  if (!symbol->offset())
+    _pf.ADDR(symbol->name());
+  else
+    _pf.LOCAL(symbol->offset());
+}
+
 //---------------------------------------------------------------------------
 
 void fir::postfix_writer::do_return_node(fir::return_node *const node, int lvl)
