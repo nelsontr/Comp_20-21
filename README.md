@@ -15,17 +15,19 @@ Compilers 2020/2021
 - [x] [Final](https://github.com/nelsontr/Comp_20-21/tree/project_final)
 
 #### Practice Test
-- [x] [franciscosaiote](https://github.com/nelsontr/Comp_20-21/tree/saioteTP)	| **Grade:** *0.0/20.0*;
-- [x] [nelsontr](https://github.com/nelsontr/Comp_20-21/tree/nelsonTP)	| **Grade:** *0.0/20.0*;
+| Solution          | Grade                 |
+| :-----------------| :-------------------: |
+| [franciscosaiote](https://github.com/nelsontr/Comp_20-21/tree/saioteTP)			| *13.0* / 20.0 |
+| [nelsontr](https://github.com/nelsontr/Comp_20-21/tree/nelsonTP)	          | *14.0* / 20.0 |
 
 ### Grades
 | Solution          | Grade 				|
 | :-----------------| :-------------------: |
 | [Zero](https://github.com/nelsontr/Comp_20-21/tree/project_zero)			| *1.40* / 2.00           |
 | [Intermediate](https://github.com/nelsontr/Comp_20-21/tree/project_intermediate)	| *5.13* / 6.00           |
-| [Final](https://github.com/nelsontr/Comp_20-21/tree/project_final)         | *00.0* / 12.0           |
+| [Final](https://github.com/nelsontr/Comp_20-21/tree/project_final)         | *7.70* / 12.00           |
 
-
+> **Total Grade:** *14.25* / 20.00 
 
 
 # CVS
